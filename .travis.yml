@@ -1,0 +1,67 @@
+
+os: linux
+dist: trusty
+language: c
+compiler: gcc
+
+env: 
+  global:
+    - nimVerbosity=3
+  matrix:
+    - nim_branch=master releaseCPU=amd64
+    - nim_branch=master releaseCPU=i386
+    - nim_branch=devel releaseCPU=amd64
+    - nim_branch=devel releaseCPU=i386
+
+matrix:
+  allow_failures:
+    env:
+      - nim_branch=devel releaseCPU=amd64
+      - nim_branch=devel releaseCPU=i386
+  fast_finish: true
+
+before_install:
+  - |
+    if [ $releaseCPU = "i386" ]; then
+      sudo -E apt-get -yq update &>> ~/apt-get-update.log
+      sudo -E apt-get -yq --no-install-suggests --no-install-recommends install gcc-multilib
+    fi
+
+install:
+  - |
+    if [ ! -x nim-$nim_branch/bin/nim ]; then
+      git clone -b $nim_branch --depth 1 git://github.com/nim-lang/nim nim-$nim_branch/
+      cd nim-$nim_branch
+      git clone --depth 1 git://github.com/nim-lang/csources csources/
+      cd csources
+      sh build.sh
+      cd ..
+      rm -rf csources
+      bin/nim c koch
+      ./koch boot -d:release
+    else
+      cd nim-$nim_branch
+      git fetch origin
+      if ! git merge FETCH_HEAD | grep "Already up-to-date"; then
+        bin/nim c koch
+        ./koch boot -d:release
+      fi
+    fi
+    cd ..
+
+cache:
+  directories:
+    - nim-master
+    - nim-devel
+
+before_script:
+#  - set -e
+#  - set -x
+  - export PATH="nim-$nim_branch/bin${PATH:+:$PATH}"
+
+script:
+  - echo $releaseOS
+  - echo $releaseCPU
+  - nim tasks
+  - nim test
+  - nim buildReleaseFromEnv
