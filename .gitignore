@@ -1,1 +1,9 @@
-nimcache/
+*
+!.gitignore
+!/.travis.yml
+!*.nim
+!*.nims
+!*.md
+!/README*
+!/LICENSE
+!/sources
