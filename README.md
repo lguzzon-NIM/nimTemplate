@@ -1,0 +1,2 @@
+# nimTemplate
+Nim template project
