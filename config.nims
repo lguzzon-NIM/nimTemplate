@@ -5,8 +5,8 @@ import ospaths
 mode = ScriptMode.Verbose
 
 let
-  releaseCpuEnvVarName = "releaseCPU"
-  releaseOSEnvVarName = "releaseOS"
+  releaseCpuEnvVarName = "nimTargetCPU"
+  releaseOSEnvVarName = "nimTargetOS"
   nimVerbosityEnvVarName = "nimVerbosity"
   buildCPU = if existsEnv(releaseCpuEnvVarName): getEnv(releaseCpuEnvVarName) else: hostCPU
   buildOS = if existsEnv(releaseOSEnvVarName): getEnv(releaseOSEnvVarName) else: hostOS
@@ -105,7 +105,7 @@ task test, "tests the project":
 
   command &= " --nimcache:" & buildCacheFolder
   command &= " --out:" & buildTestTargetFolder
-  command &= " --verbosity:0"
+  command &= " --verbosity:" & nimVerbosity  
   command &= " --run "
 
   for file in findTestFiles():
@@ -123,7 +123,8 @@ task build, "builds the project":
     switch "define", "release"
 
   build_create()
-  --verbosity:1
+  
+  switch "verbosity", nimVerbosity
   switch "out", buildBinaryFile
   switch "nimcache", buildCacheFolder
 
@@ -158,14 +159,14 @@ task buildReleaseFromEnv, "build release using env vars":
   switch "nimcache", buildCacheFolder
 
   switch "cpu", buildCPU
-  echo "cpu:" & buildCPU
+  echo "cpu: " & buildCPU
 
   if ((hostOS=="linux") and ((hostCPU=="amd64") and (buildCPU=="i386"))):
     switch "passC", "-m32"
     switch "passL", "-m32"
 
   switch "os", buildOS
-  echo "os:" & buildOS
+  echo "os: " & buildOS
 
   switch "define", "release"
   switch "out", buildBinaryFile

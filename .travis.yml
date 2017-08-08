@@ -4,64 +4,107 @@ dist: trusty
 language: c
 compiler: gcc
 
-env: 
+env:
   global:
-    - nimVerbosity=3
+    - nimVerbosity=1
   matrix:
-    - nim_branch=master releaseCPU=amd64
-    - nim_branch=master releaseCPU=i386
-    - nim_branch=devel releaseCPU=amd64
-    - nim_branch=devel releaseCPU=i386
+    - nim_branch=master nimTargetCPU=amd64
+    - nim_branch=master nimTargetCPU=i386
+    - nim_branch=devel nimTargetCPU=amd64
+    - nim_branch=devel nimTargetCPU=i386
+    - nim_branch=master nimTargetCPU=amd64 useGCC=4.9
+    - nim_branch=master nimTargetCPU=i386 useGCC=4.9
+    - nim_branch=devel nimTargetCPU=amd64 useGCC=4.9
+    - nim_branch=devel nimTargetCPU=i386 useGCC=4.9
+    - nim_branch=master nimTargetCPU=amd64 useGCC=5
+    - nim_branch=master nimTargetCPU=i386 useGCC=5
+    - nim_branch=devel nimTargetCPU=amd64 useGCC=5
+    - nim_branch=devel nimTargetCPU=i386 useGCC=5
+    - nim_branch=master nimTargetCPU=amd64 useGCC=6
+    - nim_branch=master nimTargetCPU=i386 useGCC=6
+    - nim_branch=devel nimTargetCPU=amd64 useGCC=6
+    - nim_branch=devel nimTargetCPU=i386 useGCC=6
+    - nim_branch=master nimTargetCPU=amd64 useGCC=7
+    - nim_branch=master nimTargetCPU=i386 useGCC=7
+    - nim_branch=devel nimTargetCPU=amd64 useGCC=7
+    - nim_branch=devel nimTargetCPU=i386 useGCC=7
 
 matrix:
   allow_failures:
     env:
-      - nim_branch=devel releaseCPU=amd64
-      - nim_branch=devel releaseCPU=i386
+      - nim_branch=devel nimTargetCPU=amd64
+      - nim_branch=devel nimTargetCPU=i386
+      - nim_branch=devel nimTargetCPU=amd64 useGCC=4.9
+      - nim_branch=devel nimTargetCPU=i386 useGCC=4.9
+      - nim_branch=devel nimTargetCPU=amd64 useGCC=5
+      - nim_branch=devel nimTargetCPU=i386 useGCC=5
+      - nim_branch=devel nimTargetCPU=amd64 useGCC=6
+      - nim_branch=devel nimTargetCPU=i386 useGCC=6
+      - nim_branch=devel nimTargetCPU=amd64 useGCC=7
+      - nim_branch=devel nimTargetCPU=i386 useGCC=7
   fast_finish: true
 
 before_install:
   - |
-    if [ $releaseCPU = "i386" ]; then
-      sudo -E apt-get -yq update &>> ~/apt-get-update.log
-      sudo -E apt-get -yq --no-install-suggests --no-install-recommends install gcc-multilib
+    if [ -z ${nim_branch+x} ]; then
+      export nim_branch=master
     fi
+    if [ -z ${useGCC+x} ]; then
+      export useGCC=4.8
+    fi
+    sudo -E add-apt-repository -y ppa:ubuntu-toolchain-r/test
+    sudo -E apt-get -y -qq update
+    sudo -E apt-get -y -qq --no-install-suggests --no-install-recommends install "gcc-${useGCC}" "g++-${useGCC}" git
+    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${useGCC} 10
+    sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${useGCC} 10
+    sudo update-alternatives --set gcc "/usr/bin/gcc-${useGCC}"
+    sudo update-alternatives --set g++ "/usr/bin/g++-${useGCC}"
+    if [ ${nimTargetCPU} = "i386" ]; then
+      sudo -E apt-get -y -qq --no-install-suggests --no-install-recommends install gcc-${useGCC}-multilib g++-${useGCC}-multilib
+    fi
+    sudo -E apt-get -y -qq autoremove
+    echo gcc --version
+    gcc --version
 
 install:
   - |
-    if [ ! -x nim-$nim_branch/bin/nim ]; then
-      git clone -b $nim_branch --depth 1 git://github.com/nim-lang/nim nim-$nim_branch/
-      cd nim-$nim_branch
+    pushd .
+    mkdir -p toCache
+    export nimApp=toCache/nim-${nim_branch}-${useGCC}
+    if [ ! -x ${nimApp}/bin/nim ]; then
+      git clone -b ${nim_branch} --depth 1 git://github.com/nim-lang/nim ${nimApp}/
+      pushd ${nimApp}
       git clone --depth 1 git://github.com/nim-lang/csources csources/
-      cd csources
+      pushd csources
       sh build.sh
-      cd ..
+      popd
       rm -rf csources
       bin/nim c koch
       ./koch boot -d:release
+      popd
     else
-      cd nim-$nim_branch
+      pushd ${nimApp}
       git fetch origin
       if ! git merge FETCH_HEAD | grep "Already up-to-date"; then
         bin/nim c koch
         ./koch boot -d:release
       fi
+      popd
     fi
-    cd ..
+    popd
 
 cache:
   directories:
-    - nim-master
-    - nim-devel
+    - toCache
 
 before_script:
 #  - set -e
 #  - set -x
-  - export PATH="nim-$nim_branch/bin${PATH:+:$PATH}"
+  - export PATH="${nimApp}/bin${PATH:+:$PATH}"
 
 script:
-  - echo $releaseOS
-  - echo $releaseCPU
+  - echo "target OS  [${nimTargetOS}]"
+  - echo "target CPU [${nimTargetCPU}]"
   - nim tasks
   - nim test
   - nim buildReleaseFromEnv
