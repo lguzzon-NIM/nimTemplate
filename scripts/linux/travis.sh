@@ -1,6 +1,9 @@
 #!/bin/bash
 set -ev
 
+readonly aptGetCmd="sudo -E apt-get -y -qq"
+readonly aptGetInstallCmd="${aptGetCmd} --no-install-suggests --no-install-recommends install"
+
 #Before Install
 if [ -z ${nim_branch+x} ]; then
   export nim_branch=master
@@ -9,16 +12,13 @@ if [ -z ${useGCC+x} ]; then
   export useGCC=4.8
 fi
 sudo -E add-apt-repository -y ppa:ubuntu-toolchain-r/test
-sudo -E apt-get -y -qq update
-sudo -E apt-get -y -qq --no-install-suggests --no-install-recommends install "gcc-${useGCC}" "g++-${useGCC}" git
+${aptGetCmd} update
+${aptGetInstallCmd} "gcc-${useGCC}" "g++-${useGCC}" git
 sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${useGCC} 10
 sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${useGCC} 10
 sudo update-alternatives --set gcc "/usr/bin/gcc-${useGCC}"
 sudo update-alternatives --set g++ "/usr/bin/g++-${useGCC}"
-if [ ${nimTargetCPU} = "i386" ]; then
-  sudo -E apt-get -y -qq --no-install-suggests --no-install-recommends install gcc-${useGCC}-multilib g++-${useGCC}-multilib
-fi
-sudo -E apt-get -y -qq autoremove
+${aptGetCmd} autoremove
 gcc --version
 
 #Install
@@ -47,12 +47,35 @@ else
 fi
 popd
 
+if [ ${nimTargetOS} = "windows" ]; then
+  ${aptGetInstallCmd} mingw-w64
+  if [ ${nimTargetCPU} = "i386" ]; then
+      {
+        echo i386.windows.gcc.path = \"/usr/bin\";
+        echo i386.windows.gcc.exe = \"i686-w64-mingw32-gcc\";
+        echo i386.windows.gcc.linkerexe = \"i686-w64-mingw32-gcc\";
+        echo gcc.options.linker = \"\"
+      } > nim.cfg
+    else
+      {
+        echo amd64.windows.gcc.path = \"/usr/bin\";
+        echo amd64.windows.gcc.exe = \"x86_64-w64-mingw32-gcc\";
+        echo amd64.windows.gcc.linkerexe = \"x86_64-w64-mingw32-gcc\";
+        echo gcc.options.linker = \"\"
+      } > nim.cfg
+  fi
+else
+  if [ ${nimTargetCPU} = "i386" ]; then
+    ${aptGetInstallCmd} gcc-${useGCC}-multilib g++-${useGCC}-multilib
+  fi
+fi
+
 #Before Script
 export PATH="$(pwd)/${nimApp}/bin${PATH:+:$PATH}"
 
 #Script
 echo "target OS  [${nimTargetOS}]"
 echo "target CPU [${nimTargetCPU}]"
-nim tasks
-nim test
+# nim tasks
+# nim test
 nim buildReleaseFromEnv

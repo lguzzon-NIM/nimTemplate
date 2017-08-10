@@ -5,15 +5,15 @@ import ospaths
 mode = ScriptMode.Verbose
 
 let
-  releaseCpuEnvVarName = "nimTargetCPU"
-  releaseOSEnvVarName = "nimTargetOS"
+  targetCpuEnvVarName = "nimTargetCPU"
+  targetOSEnvVarName = "nimTargetOS"
   nimVerbosityEnvVarName = "nimVerbosity"
-  buildCPU = if existsEnv(releaseCpuEnvVarName): getEnv(releaseCpuEnvVarName) else: hostCPU
-  buildOS = if existsEnv(releaseOSEnvVarName): getEnv(releaseOSEnvVarName) else: hostOS
+  targetCPU = if existsEnv(targetCpuEnvVarName): getEnv(targetCpuEnvVarName) else: hostCPU
+  targetOS = if existsEnv(targetOSEnvVarName): getEnv(targetOSEnvVarName) else: hostOS
   nimVerbosity = if existsEnv(nimVerbosityEnvVarName): getEnv(nimVerbosityEnvVarName) else: "1"
-  binaryFileName = (thisDir().extractFilename & "_" & buildOS & "_" & buildCPU).toExe
+  binaryFileNameNoExt = (thisDir().extractFilename & "_" & targetOS & "_" & targetCPU)
+  binaryFileName = if (targetOS == "windows"): binaryFileNameNoExt & ".exe" else: binaryFileNameNoExt
   nimFileExt = "nim"
-  version       = "1.1.0"
 
   sourcesFolderName =  "sources"
   resourcesFolderName =  "re" & sourcesFolderName
@@ -46,7 +46,7 @@ let
 
 template dependsOn (tasks: untyped) =
   for taskName in astToStr(tasks).split({',', ' '}):
-    exec "nim " & taskName
+    exec selfExe() & " " & taskName
 
 
 proc build_create () =
@@ -84,7 +84,7 @@ proc collectPaths (folder: string): string =
 
 
 task tasks, "list all tasks":
-  exec "nim --listCmd"
+  exec selfExe() & " --listCmd"
 
 
 task clean, "cleans the project":
@@ -97,7 +97,7 @@ task clean, "cleans the project":
 task test, "tests the project":
   build_create()
 
-  var command = "nim compile"
+  var command = selfExe() & " compile"
   command &= collectPaths(sourcesMainFolder)
   command &= collectPaths(sourcesMainResourcesFolder)
   command &= collectPaths(sourcesTestFolder)
@@ -158,16 +158,23 @@ task buildReleaseFromEnv, "build release using env vars":
   switch "verbosity", nimVerbosity
   switch "nimcache", buildCacheFolder
 
-  switch "cpu", buildCPU
-  echo "cpu: " & buildCPU
+  switch "os", targetOS
+  echo "os: " & targetOS
 
-  if ((hostOS=="linux") and ((hostCPU=="amd64") and (buildCPU=="i386"))):
-    switch "passC", "-m32"
-    switch "passL", "-m32"
+  switch "cpu", targetCPU
+  echo "cpu: " & targetCPU
 
-  switch "os", buildOS
-  echo "os: " & buildOS
 
+  case hostOS
+  of "linux":
+    if ((hostCPU=="amd64") and (targetCPU=="i386")):
+      switch "passC", "-m32"
+      switch "passL", "-m32"
+  of "windows":
+    if ((hostCPU=="amd64") and (targetCPU=="i386")):
+      put("i386.windows.gcc.exe", "x86_64-w64-mingw32-gcc")
+      put("i386.windows.gcc.linkerexe", "x86_64-w64-mingw32-gcc")
+  
   switch "define", "release"
   switch "out", buildBinaryFile
 
@@ -175,3 +182,24 @@ task buildReleaseFromEnv, "build release using env vars":
 
   setCommand "compile", sourcesMainFile
 
+
+task generateTravisEnvMatrix, "generate the complete travis-ci env matrix":
+  let 
+    lEnvs = @[@["useGCC","4.8","4.9","5","6","7"],@["nim_branch","master","devel"],@[targetOSEnvVarName,"linux","windows"],@[targetCpuEnvVarName,"amd64","i386"]]
+    lEnvsLow = lEnvs.low
+    lEnvsHigh = lEnvs.high
+  var  
+    lResult = ""
+
+  proc lGetEnvValue(aResult: string, aIndex: int) =
+    if aIndex <= lEnvsHigh:
+      let lHeader = aResult & " " & lEnvs[aIndex][0] & "="
+      for lIndex in 1..lEnvs[aIndex].high:
+        lGetEnvValue( lHeader & lEnvs[aIndex][lIndex], aIndex + 1)
+    else:
+      lResult &= aResult & "\n"
+  
+  lGetEnvValue("",0)
+  echo lResult
+
+  setCommand "nop"
