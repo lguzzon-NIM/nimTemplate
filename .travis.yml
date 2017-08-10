@@ -7,42 +7,73 @@ sudo: required
 
 env:
   global:
-    - nimVerbosity=1
+    - nimVerbosity=3
   matrix:
-    - nim_branch=master nimTargetCPU=amd64
-    - nim_branch=master nimTargetCPU=i386
-    - nim_branch=devel nimTargetCPU=amd64
-    - nim_branch=devel nimTargetCPU=i386
-    - nim_branch=master nimTargetCPU=amd64 useGCC=4.9
-    - nim_branch=master nimTargetCPU=i386 useGCC=4.9
-    - nim_branch=devel nimTargetCPU=amd64 useGCC=4.9
-    - nim_branch=devel nimTargetCPU=i386 useGCC=4.9
-    - nim_branch=master nimTargetCPU=amd64 useGCC=5
-    - nim_branch=master nimTargetCPU=i386 useGCC=5
-    - nim_branch=devel nimTargetCPU=amd64 useGCC=5
-    - nim_branch=devel nimTargetCPU=i386 useGCC=5
-    - nim_branch=master nimTargetCPU=amd64 useGCC=6
-    - nim_branch=master nimTargetCPU=i386 useGCC=6
-    - nim_branch=devel nimTargetCPU=amd64 useGCC=6
-    - nim_branch=devel nimTargetCPU=i386 useGCC=6
-    - nim_branch=master nimTargetCPU=amd64 useGCC=7
-    - nim_branch=master nimTargetCPU=i386 useGCC=7
-    - nim_branch=devel nimTargetCPU=amd64 useGCC=7
-    - nim_branch=devel nimTargetCPU=i386 useGCC=7
+    - useGCC=4.8 nim_branch=master nimTargetOS=linux nimTargetCPU=amd64
+    - useGCC=4.8 nim_branch=master nimTargetOS=linux nimTargetCPU=i386
+    - useGCC=4.8 nim_branch=master nimTargetOS=windows nimTargetCPU=amd64
+    - useGCC=4.8 nim_branch=master nimTargetOS=windows nimTargetCPU=i386
+    - useGCC=4.8 nim_branch=devel nimTargetOS=linux nimTargetCPU=amd64
+    - useGCC=4.8 nim_branch=devel nimTargetOS=linux nimTargetCPU=i386
+    - useGCC=4.8 nim_branch=devel nimTargetOS=windows nimTargetCPU=amd64
+    - useGCC=4.8 nim_branch=devel nimTargetOS=windows nimTargetCPU=i386
+    - useGCC=4.9 nim_branch=master nimTargetOS=linux nimTargetCPU=amd64
+    - useGCC=4.9 nim_branch=master nimTargetOS=linux nimTargetCPU=i386
+    - useGCC=4.9 nim_branch=master nimTargetOS=windows nimTargetCPU=amd64
+    - useGCC=4.9 nim_branch=master nimTargetOS=windows nimTargetCPU=i386
+    - useGCC=4.9 nim_branch=devel nimTargetOS=linux nimTargetCPU=amd64
+    - useGCC=4.9 nim_branch=devel nimTargetOS=linux nimTargetCPU=i386
+    - useGCC=4.9 nim_branch=devel nimTargetOS=windows nimTargetCPU=amd64
+    - useGCC=4.9 nim_branch=devel nimTargetOS=windows nimTargetCPU=i386
+    - useGCC=5 nim_branch=master nimTargetOS=linux nimTargetCPU=amd64
+    - useGCC=5 nim_branch=master nimTargetOS=linux nimTargetCPU=i386
+    - useGCC=5 nim_branch=master nimTargetOS=windows nimTargetCPU=amd64
+    - useGCC=5 nim_branch=master nimTargetOS=windows nimTargetCPU=i386
+    - useGCC=5 nim_branch=devel nimTargetOS=linux nimTargetCPU=amd64
+    - useGCC=5 nim_branch=devel nimTargetOS=linux nimTargetCPU=i386
+    - useGCC=5 nim_branch=devel nimTargetOS=windows nimTargetCPU=amd64
+    - useGCC=5 nim_branch=devel nimTargetOS=windows nimTargetCPU=i386
+    - useGCC=6 nim_branch=master nimTargetOS=linux nimTargetCPU=amd64
+    - useGCC=6 nim_branch=master nimTargetOS=linux nimTargetCPU=i386
+    - useGCC=6 nim_branch=master nimTargetOS=windows nimTargetCPU=amd64
+    - useGCC=6 nim_branch=master nimTargetOS=windows nimTargetCPU=i386
+    - useGCC=6 nim_branch=devel nimTargetOS=linux nimTargetCPU=amd64
+    - useGCC=6 nim_branch=devel nimTargetOS=linux nimTargetCPU=i386
+    - useGCC=6 nim_branch=devel nimTargetOS=windows nimTargetCPU=amd64
+    - useGCC=6 nim_branch=devel nimTargetOS=windows nimTargetCPU=i386
+    - useGCC=7 nim_branch=master nimTargetOS=linux nimTargetCPU=amd64
+    - useGCC=7 nim_branch=master nimTargetOS=linux nimTargetCPU=i386
+    - useGCC=7 nim_branch=master nimTargetOS=windows nimTargetCPU=amd64
+    - useGCC=7 nim_branch=master nimTargetOS=windows nimTargetCPU=i386
+    - useGCC=7 nim_branch=devel nimTargetOS=linux nimTargetCPU=amd64
+    - useGCC=7 nim_branch=devel nimTargetOS=linux nimTargetCPU=i386
+    - useGCC=7 nim_branch=devel nimTargetOS=windows nimTargetCPU=amd64
+    - useGCC=7 nim_branch=devel nimTargetOS=windows nimTargetCPU=i386
+
 
 matrix:
   allow_failures:
     env:
-      - nim_branch=devel nimTargetCPU=amd64
-      - nim_branch=devel nimTargetCPU=i386
-      - nim_branch=devel nimTargetCPU=amd64 useGCC=4.9
-      - nim_branch=devel nimTargetCPU=i386 useGCC=4.9
-      - nim_branch=devel nimTargetCPU=amd64 useGCC=5
-      - nim_branch=devel nimTargetCPU=i386 useGCC=5
-      - nim_branch=devel nimTargetCPU=amd64 useGCC=6
-      - nim_branch=devel nimTargetCPU=i386 useGCC=6
-      - nim_branch=devel nimTargetCPU=amd64 useGCC=7
-      - nim_branch=devel nimTargetCPU=i386 useGCC=7
+      - useGCC=4.8 nim_branch=devel nimTargetOS=linux nimTargetCPU=amd64
+      - useGCC=4.8 nim_branch=devel nimTargetOS=linux nimTargetCPU=i386
+      - useGCC=4.8 nim_branch=devel nimTargetOS=windows nimTargetCPU=amd64
+      - useGCC=4.8 nim_branch=devel nimTargetOS=windows nimTargetCPU=i386
+      - useGCC=4.9 nim_branch=devel nimTargetOS=linux nimTargetCPU=amd64
+      - useGCC=4.9 nim_branch=devel nimTargetOS=linux nimTargetCPU=i386
+      - useGCC=4.9 nim_branch=devel nimTargetOS=windows nimTargetCPU=amd64
+      - useGCC=4.9 nim_branch=devel nimTargetOS=windows nimTargetCPU=i386
+      - useGCC=5 nim_branch=devel nimTargetOS=linux nimTargetCPU=amd64
+      - useGCC=5 nim_branch=devel nimTargetOS=linux nimTargetCPU=i386
+      - useGCC=5 nim_branch=devel nimTargetOS=windows nimTargetCPU=amd64
+      - useGCC=5 nim_branch=devel nimTargetOS=windows nimTargetCPU=i386
+      - useGCC=6 nim_branch=devel nimTargetOS=linux nimTargetCPU=amd64
+      - useGCC=6 nim_branch=devel nimTargetOS=linux nimTargetCPU=i386
+      - useGCC=6 nim_branch=devel nimTargetOS=windows nimTargetCPU=amd64
+      - useGCC=6 nim_branch=devel nimTargetOS=windows nimTargetCPU=i386
+      - useGCC=7 nim_branch=devel nimTargetOS=linux nimTargetCPU=amd64
+      - useGCC=7 nim_branch=devel nimTargetOS=linux nimTargetCPU=i386
+      - useGCC=7 nim_branch=devel nimTargetOS=windows nimTargetCPU=amd64
+      - useGCC=7 nim_branch=devel nimTargetOS=windows nimTargetCPU=i386
   fast_finish: true
 
 script:
