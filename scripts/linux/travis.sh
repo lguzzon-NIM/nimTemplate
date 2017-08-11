@@ -90,4 +90,4 @@ echo "target OS  [${nimTargetOS}]"
 echo "target CPU [${nimTargetCPU}]"
 # nim tasks
 # nim test
-nim buildReleaseFromEnv
+nim build release
