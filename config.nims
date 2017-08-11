@@ -171,9 +171,9 @@ task buildReleaseFromEnv, "build release using env vars":
       switch "passC", "-m32"
       switch "passL", "-m32"
   of "windows":
-    if ((hostCPU=="amd64") and (targetCPU=="i386")):
-      put("i386.windows.gcc.exe", "x86_64-w64-mingw32-gcc")
-      put("i386.windows.gcc.linkerexe", "x86_64-w64-mingw32-gcc")
+# ChekThisOut    if ((hostCPU=="amd64") and (targetCPU=="i386")):
+# ChekThisOut      put("i386.windows.gcc.exe", "x86_64-w64-mingw32-gcc") 
+# ChekThisOut      put("i386.windows.gcc.linkerexe", "x86_64-w64-mingw32-gcc") # ChekThisOut
   
   switch "define", "release"
   switch "out", buildBinaryFile

@@ -48,11 +48,10 @@ fi
 popd
 
 if [ ${nimTargetOS} = "windows" ]; then
+	echo "------------------------------------------------------------ targetOS: ${nimTargetOS}"
 	${aptGetInstallCmd} mingw-w64 wine
 	if [ ${nimTargetCPU} = "i386" ]; then
-		dpkg --add-architecture i386
-		${aptGetCmd} update
-		${aptGetInstallCmd} wine32
+		echo "------------------------------------------------------------ targetCPU: ${nimTargetCPU}"
 		export WINEARCH=win32
 		{
 			echo i386.windows.gcc.path = \"/usr/bin\"
@@ -61,6 +60,7 @@ if [ ${nimTargetOS} = "windows" ]; then
 			echo gcc.options.linker = \"\"
 		} >nim.cfg
 	else
+		echo "------------------------------------------------------------ targetCPU: ${nimTargetCPU}"
 		export WINEARCH=win64
 		if [ ${nimTargetCPU} = "amd64" ]; then
 			{
@@ -73,8 +73,12 @@ if [ ${nimTargetOS} = "windows" ]; then
 	fi
 	wine hostname
 else
-	if [ ${nimTargetCPU} = "i386" ]; then
-		${aptGetInstallCmd} gcc-${useGCC}-multilib g++-${useGCC}-multilib
+	if [ ${nimTargetOS} = "linux" ]; then
+		echo "------------------------------------------------------------ targetOS: ${nimTargetOS}"
+		if [ ${nimTargetCPU} = "i386" ]; then
+			echo "------------------------------------------------------------ targetCPU: ${nimTargetCPU}"
+			${aptGetInstallCmd} gcc-${useGCC}-multilib g++-${useGCC}-multilib
+		fi
 	fi
 fi
 
