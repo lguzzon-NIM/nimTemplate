@@ -11,8 +11,8 @@ env:
   matrix:
     - useGCC=4.8 nim_branch=master nimTargetOS=linux nimTargetCPU=amd64
     - useGCC=4.8 nim_branch=master nimTargetOS=linux nimTargetCPU=i386
-    # - useGCC=4.8 nim_branch=master nimTargetOS=windows nimTargetCPU=amd64
-    # - useGCC=4.8 nim_branch=master nimTargetOS=windows nimTargetCPU=i386
+    - useGCC=4.8 nim_branch=master nimTargetOS=windows nimTargetCPU=amd64
+    - useGCC=4.8 nim_branch=master nimTargetOS=windows nimTargetCPU=i386
     # - useGCC=4.8 nim_branch=devel nimTargetOS=linux nimTargetCPU=amd64
     # - useGCC=4.8 nim_branch=devel nimTargetOS=linux nimTargetCPU=i386
     # - useGCC=4.8 nim_branch=devel nimTargetOS=windows nimTargetCPU=amd64
