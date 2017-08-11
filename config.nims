@@ -171,6 +171,7 @@ task buildReleaseFromEnv, "build release using env vars":
       switch "passC", "-m32"
       switch "passL", "-m32"
   of "windows":
+    discard
 # ChekThisOut    if ((hostCPU=="amd64") and (targetCPU=="i386")):
 # ChekThisOut      put("i386.windows.gcc.exe", "x86_64-w64-mingw32-gcc") 
 # ChekThisOut      put("i386.windows.gcc.linkerexe", "x86_64-w64-mingw32-gcc") # ChekThisOut
@@ -184,7 +185,7 @@ task buildReleaseFromEnv, "build release using env vars":
 
 
 task generateTravisEnvMatrix, "generate the complete travis-ci env matrix":
-  let 
+  const 
     lEnvs = @[@["useGCC","4.8","4.9","5","6","7"],@["nim_branch","master","devel"],@[targetOSEnvVarName,"linux","windows"],@[targetCpuEnvVarName,"amd64","i386"]]
     lEnvsLow = lEnvs.low
     lEnvsHigh = lEnvs.high
@@ -199,7 +200,7 @@ task generateTravisEnvMatrix, "generate the complete travis-ci env matrix":
     else:
       lResult &= aResult & "\n"
   
-  lGetEnvValue("",0)
+  lGetEnvValue("",lEnvsLow)
   echo lResult
 
   setCommand "nop"
