@@ -2,13 +2,12 @@
 import strutils 
 import ospaths
 
+import sources/test/nim/envVarNames
+
 let
-  targetCpuEnvVarName = "nimTargetCPU"
-  targetOSEnvVarName = "nimTargetOS"
-  nimVerbosityEnvVarName = "nimVerbosity"
-  targetCPU = if existsEnv(targetCpuEnvVarName): getEnv(targetCpuEnvVarName) else: hostCPU
-  targetOS = if existsEnv(targetOSEnvVarName): getEnv(targetOSEnvVarName) else: hostOS
-  nimVerbosity = if existsEnv(nimVerbosityEnvVarName): getEnv(nimVerbosityEnvVarName) else: "1"
+  targetCPU = if existsEnv(gcTargetCpuEnvVarName): getEnv(gcTargetCpuEnvVarName) else: hostCPU
+  targetOS = if existsEnv(gcTargetOSEnvVarName): getEnv(gcTargetOSEnvVarName) else: hostOS
+  nimVerbosity = if existsEnv(gcNimVerbosityEnvVarName): getEnv(gcNimVerbosityEnvVarName) else: "1"
   binaryFileNameNoExt = (thisDir().extractFilename & "_" & targetOS & "_" & targetCPU)
   binaryFileExt = if (targetOS == "windows"): ".exe" else: ""
   binaryFileName = if (targetOS == "windows"): binaryFileNameNoExt & binaryFileExt else: binaryFileNameNoExt
@@ -40,7 +39,7 @@ let
   buildTestTargetFolder     = buildCacheFolder / testFolderName
   buildBinaryFile           = buildTargetFolder / binaryFileName
 
-mode = if existsEnv(nimVerbosityEnvVarName) and not(getEnv(nimVerbosityEnvVarName)=="0"): ScriptMode.Verbose else: ScriptMode.Silent 
+mode = if existsEnv(gcNimVerbosityEnvVarName) and not(getEnv(gcNimVerbosityEnvVarName)=="0"): ScriptMode.Verbose else: ScriptMode.Silent 
   
 proc paramString():string = 
   result = ""
@@ -133,7 +132,7 @@ task compileTest_OSLinux_OSWindows, "interal - Compile test program":
 
 task compileAndRunTest_OSLinux_OSWindows, "interal - Compile and run test program":
   dependsOn compileTest_OSLinux_OSWindows
-  exec "appToTest=\"" & buildBinaryFile & "\" wine \"" & getTestBinaryFilePath(getEnv("compileAndRunTest")) & "\" 2>/dev/null" 
+  exec gcApplicationToTestEnvVarName & "=\"" & buildBinaryFile & "\" wine \"" & getTestBinaryFilePath(getEnv("compileAndRunTest")) & "\" 2>/dev/null" 
   setCommand "nop"
 
 
@@ -144,7 +143,7 @@ task compileAndRunTest, "interal - Compile and run test program":
   switchPathFromFolders(sourcesTestResourcesFolder)
   switch "nimcache", buildTestTargetFolder
   switch "out", getTestBinaryFilePath(lFilePath)
-  switch "putenv", "appToTest=" & buildBinaryFile
+  switch "putenv", gcApplicationToTestEnvVarName & "=" & buildBinaryFile
   switch "run"
   setCommand "compile", lFilePath
 
@@ -194,7 +193,7 @@ task run, "runs the project":
 
 task generateTravisEnvMatrix, "generate the complete travis-ci env matrix":
   const 
-    lEnvs = @[@["useGCC","4.8","4.9","5","6","7"],@["nim_branch","master","devel"],@[targetOSEnvVarName,"linux","windows"],@[targetCpuEnvVarName,"amd64","i386"]]
+    lEnvs = @[@[gcGCCVersionToUseEnvVarName,"4.8","4.9","5","6","7"],@[gcNimBranchToUseEnvVarName,"master","devel"],@[gcTargetOSEnvVarName,"linux","windows"],@[gcTargetCpuEnvVarName,"amd64","i386"]]
     lEnvsLow = lEnvs.low
     lEnvsHigh = lEnvs.high
   var  
