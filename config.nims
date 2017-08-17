@@ -91,6 +91,7 @@ proc switchCommon() =
   switch "verbosity", nimVerbosity
   switch "out", buildBinaryFile
   switch "nimcache", buildCacheFolder
+  switch "app", "console"
   switch "os", targetOS
   switch "cpu", targetCPU
   case hostOS
@@ -101,6 +102,10 @@ proc switchCommon() =
   of "windows":
     discard
   switchPathBuild()
+
+
+proc getTestBinaryFilePath(aSourcePath:string): string {. inline .}=
+  result = buildTestTargetFolder / splitFile(aSourcePath).name & "_" & targetOS & "_" & targetCPU & binaryFileExt
 
 
 task tasks, "list all tasks":
@@ -116,25 +121,45 @@ task clean, "cleans the project":
   setCommand "nop"
     
 
-task compileAndRunTest, "interal - Compile and run test program":
+task compileTest_OSLinux_OSWindows, "interal - Compile test program":
+  switchCommon()
+  switchPathFromFolders(sourcesTestFolder)
+  switchPathFromFolders(sourcesTestResourcesFolder)
+  switch "nimcache", buildTestTargetFolder
+  let lFilePath = getEnv("compileAndRunTest")
+  switch "out", getTestBinaryFilePath(lFilePath)
+  setCommand "compile", lFilePath
 
+
+task compileAndRunTest_OSLinux_OSWindows, "interal - Compile and run test program":
+  dependsOn compileTest_OSLinux_OSWindows
+  exec "appToTest=\"" & buildBinaryFile & "\" wine \"" & getTestBinaryFilePath(getEnv("compileAndRunTest")) & "\" 2>/dev/null" 
+  setCommand "nop"
+
+
+task compileAndRunTest, "interal - Compile and run test program":
   let lFilePath = getEnv("compileAndRunTest")
   switchCommon()
   switchPathFromFolders(sourcesTestFolder)
   switchPathFromFolders(sourcesTestResourcesFolder)
   switch "nimcache", buildTestTargetFolder
-  switch "out", buildTestTargetFolder / "test" & binaryFileExt
+  switch "out", getTestBinaryFilePath(lFilePath)
   switch "putenv", "appToTest=" & buildBinaryFile
   switch "run"
   setCommand "compile", lFilePath
-  
+
 
 task test, "tests the project":
   dependsOn build
   for lFilePath in findTestFiles():
-    selfExec("\"--putenv:paramString=" & paramString() & "\" " & "\"--putenv:compileAndRunTest=" & lFilePath & "\" " & "compileAndRunTest") 
+    var lCommandToExec = "compileAndRunTest"
+    case hostOS
+    of "linux":
+      if (targetOS=="windows"):
+        lCommandToExec = "compileAndRunTest_OSLinux_OSWindows"
+    selfExec("\"--putenv:paramString=" & paramString() & "\" " & "\"--putenv:compileAndRunTest=" & lFilePath & "\" " & lCommandToExec) 
   setCommand "nop"
-  
+
 
 task cTest, "clean test the project":
   dependsOn clean test

@@ -46,9 +46,10 @@ else
 	popd
 fi
 popd
-
+rm -f nim.cfg
 if [ ${nimTargetOS} = "windows" ]; then
 	echo "------------------------------------------------------------ targetOS: ${nimTargetOS}"
+	rm -rdf ~/.wine
 	${aptGetInstallCmd} mingw-w64 wine
 	if [ ${nimTargetCPU} = "i386" ]; then
 		echo "------------------------------------------------------------ targetCPU: ${nimTargetCPU}"
@@ -88,6 +89,6 @@ export PATH="$(pwd)/${nimApp}/bin${PATH:+:$PATH}"
 #Script
 echo "target OS  [${nimTargetOS}]"
 echo "target CPU [${nimTargetCPU}]"
-# nim tasks
-# nim test
-nim build release
+#nim tasks
+nim ctest release
+#nim build release
