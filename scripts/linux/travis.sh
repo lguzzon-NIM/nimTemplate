@@ -13,7 +13,7 @@ if [ -z ${USE_GCC+x} ]; then
 fi
 sudo -E add-apt-repository -y ppa:ubuntu-toolchain-r/test
 ${aptGetCmd} update
-${aptGetInstallCmd} "gcc-${USE_GCC}" "g++-${USE_GCC}" git
+${aptGetInstallCmd} "gcc-${USE_GCC}" "g++-${USE_GCC}" git upx-ucl
 sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${USE_GCC} 10
 sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${USE_GCC} 10
 sudo update-alternatives --set gcc "/usr/bin/gcc-${USE_GCC}"

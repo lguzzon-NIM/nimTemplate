@@ -164,11 +164,18 @@ task cTest, "clean test the project":
   dependsOn clean test
 
 
-task build, "builds the project":
+task buildBinary, "builds the binary of the project":
   build_create()
   switchCommon()
   setCommand "compile", sourcesMainFile
 
+
+task build, "builds the project":
+  dependsOn buildBinary
+  exec "strip " & buildBinaryFile
+  exec "upx --best " & buildBinaryFile
+  setCommand "nop"
+  
 
 task cBuild, "clean build the project":
   dependsOn clean build
