@@ -78,7 +78,7 @@ else
 		echo "------------------------------------------------------------ targetOS: ${nimTargetOS}"
 		if [ ${nimTargetCPU} = "i386" ]; then
 			echo "------------------------------------------------------------ targetCPU: ${nimTargetCPU}"
-			${aptGetInstallCmd} gcc-${useGCC}-multilib g++-${useGCC}-multilib
+			${aptGetInstallCmd} gcc-${useGCC}-multilib g++-${useGCC}-multilib gcc-multilib g++-multilib 
 		fi
 	fi
 fi
