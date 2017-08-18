@@ -5,77 +5,93 @@ readonly aptGetCmd="sudo -E apt-get -y -qq"
 readonly aptGetInstallCmd="${aptGetCmd} --no-install-suggests --no-install-recommends install"
 
 #Before Install
-if [ -z ${nim_branch+x} ]; then
-  export nim_branch=master
+if [ -z ${NIM_BRANCH+x} ]; then
+	export NIM_BRANCH=master
 fi
-if [ -z ${useGCC+x} ]; then
-  export useGCC=4.8
+if [ -z ${USE_GCC+x} ]; then
+	export USE_GCC=4.8
+fi
+if [ -z ${NIM_VERBOSITY+x} ]; then
+	export NIM_VERBOSITY=0
 fi
 sudo -E add-apt-repository -y ppa:ubuntu-toolchain-r/test
 ${aptGetCmd} update
-${aptGetInstallCmd} "gcc-${useGCC}" "g++-${useGCC}" git
-sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${useGCC} 10
-sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${useGCC} 10
-sudo update-alternatives --set gcc "/usr/bin/gcc-${useGCC}"
-sudo update-alternatives --set g++ "/usr/bin/g++-${useGCC}"
+${aptGetInstallCmd} "gcc-${USE_GCC}" "g++-${USE_GCC}" git upx-ucl
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${USE_GCC} 10
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${USE_GCC} 10
+sudo update-alternatives --set gcc "/usr/bin/gcc-${USE_GCC}"
+sudo update-alternatives --set g++ "/usr/bin/g++-${USE_GCC}"
 ${aptGetCmd} autoremove
 gcc --version
 
 #Install
 pushd .
 mkdir -p toCache
-export nimApp=toCache/nim-${nim_branch}-${useGCC}
-if [ ! -x ${nimApp}/bin/nim ]; then
-  git clone -b ${nim_branch} --depth 1 git://github.com/nim-lang/nim ${nimApp}/
-  pushd ${nimApp}
-  git clone --depth 1 git://github.com/nim-lang/csources csources/
-  pushd csources
-  sh build.sh
-  popd
-  rm -rf csources
-  bin/nim c koch
-  ./koch boot -d:release
-  popd
+readonly lNimAppPath=toCache/nim-${NIM_BRANCH}-${USE_GCC}
+if [ ! -x ${lNimAppPath}/bin/nim ]; then
+	git clone -b ${NIM_BRANCH} --depth 1 git://github.com/nim-lang/nim ${lNimAppPath}/
+	pushd ${lNimAppPath}
+	git clone --depth 1 git://github.com/nim-lang/csources csources/
+	pushd csources
+	sh build.sh
+	popd
+	rm -rf csources
+	bin/nim c koch
+	./koch boot -d:release
+	popd
 else
-  pushd ${nimApp}
-  git fetch origin
-  if ! git merge FETCH_HEAD | grep "Already up-to-date"; then
-    bin/nim c koch
-    ./koch boot -d:release
-  fi
-  popd
+	pushd ${lNimAppPath}
+	git fetch origin
+	if ! git merge FETCH_HEAD | grep "Already up-to-date"; then
+		bin/nim c koch
+		./koch boot -d:release
+	fi
+	popd
 fi
 popd
-
-if [ ${nimTargetOS} = "windows" ]; then
-  ${aptGetInstallCmd} mingw-w64
-  if [ ${nimTargetCPU} = "i386" ]; then
-      {
-        echo i386.windows.gcc.path = \"/usr/bin\";
-        echo i386.windows.gcc.exe = \"i686-w64-mingw32-gcc\";
-        echo i386.windows.gcc.linkerexe = \"i686-w64-mingw32-gcc\";
-        echo gcc.options.linker = \"\"
-      } > nim.cfg
-    else
-      {
-        echo amd64.windows.gcc.path = \"/usr/bin\";
-        echo amd64.windows.gcc.exe = \"x86_64-w64-mingw32-gcc\";
-        echo amd64.windows.gcc.linkerexe = \"x86_64-w64-mingw32-gcc\";
-        echo gcc.options.linker = \"\"
-      } > nim.cfg
-  fi
+rm -f nim.cfg
+if [ "${NIM_TARGET_OS}" = "windows" ]; then
+	echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
+	rm -rdf ~/.wine
+	${aptGetInstallCmd} mingw-w64 wine
+	if [ "${NIM_TARGET_CPU}" = "i386" ]; then
+		echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
+		export WINEARCH=win32
+		{
+			echo i386.windows.gcc.path = \"/usr/bin\"
+			echo i386.windows.gcc.exe = \"i686-w64-mingw32-gcc\"
+			echo i386.windows.gcc.linkerexe = \"i686-w64-mingw32-gcc\"
+			echo gcc.options.linker = \"\"
+		} >nim.cfg
+	else
+		echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
+		export WINEARCH=win64
+		if [ "${NIM_TARGET_CPU}" = "amd64" ]; then
+			{
+				echo amd64.windows.gcc.path = \"/usr/bin\"
+				echo amd64.windows.gcc.exe = \"x86_64-w64-mingw32-gcc\"
+				echo amd64.windows.gcc.linkerexe = \"x86_64-w64-mingw32-gcc\"
+				echo gcc.options.linker = \"\"
+			} >nim.cfg
+		fi
+	fi
+	wine hostname
 else
-  if [ ${nimTargetCPU} = "i386" ]; then
-    ${aptGetInstallCmd} gcc-${useGCC}-multilib g++-${useGCC}-multilib
-  fi
+	if [ "${NIM_TARGET_OS}" = "linux" ]; then
+		echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
+		if [ "${NIM_TARGET_CPU}" = "i386" ]; then
+			echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
+			${aptGetInstallCmd} gcc-${USE_GCC}-multilib g++-${USE_GCC}-multilib gcc-multilib g++-multilib
+		fi
+	fi
 fi
 
 #Before Script
-export PATH="$(pwd)/${nimApp}/bin${PATH:+:$PATH}"
+export PATH
+PATH="$(pwd)/${lNimAppPath}/bin${PATH:+:$PATH}" || true
 
 #Script
-echo "target OS  [${nimTargetOS}]"
-echo "target CPU [${nimTargetCPU}]"
-# nim tasks
-# nim test
-nim buildReleaseFromEnv
+echo "target OS  [${NIM_TARGET_OS}]"
+echo "target CPU [${NIM_TARGET_CPU}]"
+
+nim ctest release

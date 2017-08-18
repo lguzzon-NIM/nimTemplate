@@ -2,17 +2,15 @@
 import strutils 
 import ospaths
 
-mode = ScriptMode.Verbose
+import sources/test/nim/envVarNames
 
 let
-  targetCpuEnvVarName = "nimTargetCPU"
-  targetOSEnvVarName = "nimTargetOS"
-  nimVerbosityEnvVarName = "nimVerbosity"
-  targetCPU = if existsEnv(targetCpuEnvVarName): getEnv(targetCpuEnvVarName) else: hostCPU
-  targetOS = if existsEnv(targetOSEnvVarName): getEnv(targetOSEnvVarName) else: hostOS
-  nimVerbosity = if existsEnv(nimVerbosityEnvVarName): getEnv(nimVerbosityEnvVarName) else: "1"
+  targetCPU = if existsEnv(gcTargetCpuEnvVarName): getEnv(gcTargetCpuEnvVarName) else: hostCPU
+  targetOS = if existsEnv(gcTargetOSEnvVarName): getEnv(gcTargetOSEnvVarName) else: hostOS
+  nimVerbosity = if existsEnv(gcNimVerbosityEnvVarName): getEnv(gcNimVerbosityEnvVarName) else: "0"
   binaryFileNameNoExt = (thisDir().extractFilename & "_" & targetOS & "_" & targetCPU)
-  binaryFileName = if (targetOS == "windows"): binaryFileNameNoExt & ".exe" else: binaryFileNameNoExt
+  binaryFileExt = if (targetOS == "windows"): ".exe" else: ""
+  binaryFileName = if (targetOS == "windows"): binaryFileNameNoExt & binaryFileExt else: binaryFileNameNoExt
   nimFileExt = "nim"
 
   sourcesFolderName =  "sources"
@@ -38,15 +36,20 @@ let
   buildFolder               = thisDir() / buildFolderName
   buildCacheFolder          = buildFolder / cacheFolderName
   buildTargetFolder         = buildFolder / targetFolderName
-  buildTestTargetFolder     = buildTargetFolder / testFolderName
+  buildTestTargetFolder     = buildCacheFolder / testFolderName
   buildBinaryFile           = buildTargetFolder / binaryFileName
 
-
+mode = if existsEnv(gcNimVerbosityEnvVarName) and not(getEnv(gcNimVerbosityEnvVarName)=="0"): ScriptMode.Verbose else: ScriptMode.Silent 
+  
+proc paramString():string = 
+  result = ""
+  if paramCount() > 1:
+    result &= paramStr(2)
 
 
 template dependsOn (tasks: untyped) =
   for taskName in astToStr(tasks).split({',', ' '}):
-    exec selfExe() & " " & taskName
+    selfExecWithDefaults(taskName & " " & paramString())
 
 
 proc build_create () =
@@ -55,137 +58,155 @@ proc build_create () =
       mkdir folder
 
 
-proc folders (dir: string): seq[string] =
+proc folders (aFolderPath: string): seq[string] =
   result = newSeq[string]()
-  result.add(dir)
-  for child in listDirs(dir):
-    result.add(folders(child))
+  result.add(aFolderPath)
+  for lChildFolderPath in listDirs(aFolderPath):
+    result.add(folders(lChildFolderPath))
 
 
 proc findTestFiles (): seq[string] =
   result = newSeq[string]()
-  for folder in folders(sourcesTestFolder):
-    for file in listFiles(folder):
-      if file.endsWith("_test.nim"):
-        result.add(file)
-
-proc addAllBuildPaths () =
-  switch "path", sourcesMainFolder
-  for folder in folders(sourcesMainFolder):
-    switch "path", folder
-  if existsDir sourcesMainResourcesFolder:
-    switch "path", sourcesMainResourcesFolder
+  for lFolderPath in folders(sourcesTestFolder):
+    for lFilePath in listFiles(lFolderPath):
+      if lFilePath.endsWith("_test.nim"):
+        result.add(lFilePath)
 
 
-proc collectPaths (folder: string): string =
-  result = ""
-  for child in folders(folder):
-    result &= " --path:" & child
+proc switchPathFromFolders (aFolderPath: string) =
+  switch "path", aFolderPath
+  for lChildPath in folders(aFolderPath):
+    switch "path", lChildPath
+        
+        
+proc switchPathBuild () =
+  switchPathFromFolders(sourcesMainFolder)
+  switchPathFromFolders(sourcesMainResourcesFolder)
 
 
-task tasks, "list all tasks":
-  exec selfExe() & " --listCmd"
-
-
-task clean, "cleans the project":
-  if dirExists buildFolder:
-    rmdir buildFolder
-  else:
-    echo "Nothing to clean"
-
-
-task test, "tests the project":
-  build_create()
-
-  var command = selfExe() & " compile"
-  command &= collectPaths(sourcesMainFolder)
-  command &= collectPaths(sourcesMainResourcesFolder)
-  command &= collectPaths(sourcesTestFolder)
-  command &= collectPaths(sourcesTestResourcesFolder)
-
-  command &= " --nimcache:" & buildCacheFolder
-  command &= " --out:" & buildTestTargetFolder
-  command &= " --verbosity:" & nimVerbosity  
-  command &= " --run "
-
-  for file in findTestFiles():
-    exec command & file
-  rmFile buildTestTargetFolder
-
-
-task cTest, "clean test the project":
-  dependsOn clean test
-
-
-task build, "builds the project":
-  if paramCount() == 2 and paramStr(2) == "release":
-    dependsOn test
+proc switchCommon() =
+  if ((paramString() == "release") or (existsEnv("paramString") and (getEnv("paramString") == "release"))):
     switch "define", "release"
-
-  build_create()
-  
   switch "verbosity", nimVerbosity
   switch "out", buildBinaryFile
   switch "nimcache", buildCacheFolder
-
-  addAllBuildPaths()
-  setCommand "compile", sourcesMainFile
-
-
-task cBuild, "clean build the project":
-  dependsOn clean build
-
-
-task init, "initialize a project":
-  for folder in @[sourcesMainNimFolder, sourcesMainResourcesFolder, sourcesTestNimFolder, sourcesTestResourcesFolder]:
-    mkdir folder
-  writeFile(sourcesMainFile, "echo \"Hello world\"")
-
-
-task run, "runs the project":
-  dependsOn build
-
-  var command = buildBinaryFile
-  for parameterIndex in 2..paramCount():
-    command &= ' ' & paramStr(parameterIndex)
-
-  exec command
-  setCommand "nop"
-
-task buildReleaseFromEnv, "build release using env vars":
-  build_create()
-
-  switch "verbosity", nimVerbosity
-  switch "nimcache", buildCacheFolder
-
+  switch "app", "console"
   switch "os", targetOS
-  echo "os: " & targetOS
-
   switch "cpu", targetCPU
-  echo "cpu: " & targetCPU
-
-
+  if (nimVerbosity=="0"):
+    switch "hints", "off"
   case hostOS
   of "linux":
     if ((hostCPU=="amd64") and (targetCPU=="i386")):
       switch "passC", "-m32"
       switch "passL", "-m32"
   of "windows":
-    if ((hostCPU=="amd64") and (targetCPU=="i386")):
-      put("i386.windows.gcc.exe", "x86_64-w64-mingw32-gcc")
-      put("i386.windows.gcc.linkerexe", "x86_64-w64-mingw32-gcc")
+    discard
+  switchPathBuild()
+
+
+proc getTestBinaryFilePath(aSourcePath:string): string {. inline .}=
+  result = buildTestTargetFolder / splitFile(aSourcePath).name & "_" & targetOS & "_" & targetCPU & binaryFileExt
+
+
+proc selfExecWithDefaults(aCommand: string) {. inline .}= 
+  selfExec((if (nimVerbosity=="0"): "--hints:off " else: "") & aCommand)
+
+
+task tasks, "list all tasks":
+  selfExecWithDefaults("--listCmd")
+  setCommand "nop"
   
-  switch "define", "release"
-  switch "out", buildBinaryFile
 
-  addAllBuildPaths()
+task clean, "cleans the project":
+  if dirExists buildFolder:
+    rmdir buildFolder
+  else:
+    echo "Nothing to clean"
+  setCommand "nop"
+    
 
+task compileTest_OSLinux_OSWindows, "interal - Compile test program":
+  switchCommon()
+  switchPathFromFolders(sourcesTestFolder)
+  switchPathFromFolders(sourcesTestResourcesFolder)
+  switch "nimcache", buildTestTargetFolder
+  let lFilePath = getEnv("compileAndRunTest")
+  switch "out", getTestBinaryFilePath(lFilePath)
+  setCommand "compile", lFilePath
+
+
+task compileAndRunTest_OSLinux_OSWindows, "interal - Compile and run test program":
+  dependsOn compileTest_OSLinux_OSWindows
+  exec gcApplicationToTestEnvVarName & "=\"" & buildBinaryFile & "\" wine \"" & getTestBinaryFilePath(getEnv("compileAndRunTest")) & "\" 2>/dev/null" 
+  setCommand "nop"
+
+
+task compileAndRunTest, "interal - Compile and run test program":
+  let lFilePath = getEnv("compileAndRunTest")
+  switchCommon()
+  switchPathFromFolders(sourcesTestFolder)
+  switchPathFromFolders(sourcesTestResourcesFolder)
+  switch "nimcache", buildTestTargetFolder
+  switch "out", getTestBinaryFilePath(lFilePath)
+  switch "putenv", gcApplicationToTestEnvVarName & "=" & buildBinaryFile
+  switch "run"
+  setCommand "compile", lFilePath
+
+
+task test, "tests the project":
+  dependsOn build
+  for lFilePath in findTestFiles():
+    var lCommandToExec = "compileAndRunTest"
+    case hostOS
+    of "linux":
+      if (targetOS=="windows"):
+        lCommandToExec = "compileAndRunTest_OSLinux_OSWindows"
+    selfExecWithDefaults("\"--putenv:paramString=" & paramString() & "\" " & "\"--putenv:compileAndRunTest=" & lFilePath & "\" " & lCommandToExec) 
+  setCommand "nop"
+
+
+task cTest, "clean test the project":
+  dependsOn clean test
+
+
+task buildBinary, "builds the binary of the project":
+  build_create()
+  switchCommon()
   setCommand "compile", sourcesMainFile
 
 
+task build, "builds the project":
+  dependsOn buildBinary
+  exec "strip " & buildBinaryFile
+  exec "upx --best " & buildBinaryFile
+  setCommand "nop"
+  
+
+task cBuild, "clean build the project":
+  dependsOn clean build
+  setCommand "nop"
+  
+
+task init, "initialize a project":
+  for folder in @[sourcesMainNimFolder, sourcesMainResourcesFolder, sourcesTestNimFolder, sourcesTestResourcesFolder]:
+    mkdir folder
+  writeFile(sourcesMainFile, "echo \"Hello world\"")
+  setCommand "nop"
+  
+
+task run, "runs the project":
+  dependsOn build
+  var command = buildBinaryFile
+  for parameterIndex in 2..paramCount():
+    command &= ' ' & paramStr(parameterIndex)
+  exec command
+  setCommand "nop"
+
+
 task generateTravisEnvMatrix, "generate the complete travis-ci env matrix":
-  let 
-    lEnvs = @[@["useGCC","4.8","4.9","5","6","7"],@["nim_branch","master","devel"],@[targetOSEnvVarName,"linux","windows"],@[targetCpuEnvVarName,"amd64","i386"]]
+  const 
+    lEnvs = @[@[gcGCCVersionToUseEnvVarName,"4.8","4.9","5","6","7"],@[gcNimBranchToUseEnvVarName,"master","devel"],@[gcTargetOSEnvVarName,"linux","windows"],@[gcTargetCpuEnvVarName,"amd64","i386"]]
     lEnvsLow = lEnvs.low
     lEnvsHigh = lEnvs.high
   var  
@@ -199,7 +220,14 @@ task generateTravisEnvMatrix, "generate the complete travis-ci env matrix":
     else:
       lResult &= aResult & "\n"
   
-  lGetEnvValue("",0)
+  lGetEnvValue("",lEnvsLow)
   echo lResult
 
   setCommand "nop"
+
+
+task params, "debug - show params":
+  echo paramString()
+  setCommand "nop"
+  
+  
