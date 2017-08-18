@@ -40,16 +40,38 @@ let
   buildBinaryFile           = buildTargetFolder / binaryFileName
 
 mode = if existsEnv(gcNimVerbosityEnvVarName) and not(getEnv(gcNimVerbosityEnvVarName)=="0"): ScriptMode.Verbose else: ScriptMode.Silent 
+
+proc splitCmdLine() : tuple[options, command, params: string] =
+  var lIndex = 1
+  let lCount = paramCount()
+  var lResult = ""
+  while lIndex <= lCount:
+    if paramStr(lIndex)[0] == '-':
+      lResult &= " " & "\"" & paramStr(lIndex) & "\""      
+      lIndex.inc
+    else:
+      break
+  result.options = lResult.strip()
+  if (lIndex <= lCount):
+    result.command = paramStr(lIndex).strip()
+    lIndex.inc
+  lResult = ""
+  while lIndex <= lCount:
+    lResult &= " "  & paramStr(lIndex) 
+    lIndex.inc
+  result.params = lResult.strip()
+
+
+template selfExecWithDefaults(aCommand: string) = 
+  var lCmdLine = splitCmdLine()
+  if (nimVerbosity=="0") and (not lCmdLine.options.contains("--hint")):
+    lCmdLine.options &= " --hints:off"
+  selfExec(lCmdLine.options & " " & aCommand.strip() & " " & lCmdLine.params)
   
-proc paramString():string = 
-  result = ""
-  if paramCount() > 1:
-    result &= paramStr(2)
-
-
+  
 template dependsOn (tasks: untyped) =
   for taskName in astToStr(tasks).split({',', ' '}):
-    selfExecWithDefaults(taskName & " " & paramString())
+    selfExecWithDefaults(taskName)
 
 
 proc build_create () =
@@ -85,7 +107,7 @@ proc switchPathBuild () =
 
 
 proc switchCommon() =
-  if ((paramString() == "release") or (existsEnv("paramString") and (getEnv("paramString") == "release"))):
+  if splitCmdLine().params == "release":
     switch "define", "release"
   switch "verbosity", nimVerbosity
   switch "out", buildBinaryFile
@@ -105,12 +127,8 @@ proc switchCommon() =
   switchPathBuild()
 
 
-proc getTestBinaryFilePath(aSourcePath:string): string {. inline .}=
+proc getTestBinaryFilePath(aSourcePath:string): string =
   result = buildTestTargetFolder / splitFile(aSourcePath).name & "_" & targetOS & "_" & targetCPU & binaryFileExt
-
-
-proc selfExecWithDefaults(aCommand: string) {. inline .}= 
-  selfExec((if (nimVerbosity=="0"): "--hints:off " else: "") & aCommand)
 
 
 task tasks, "list all tasks":
@@ -162,13 +180,14 @@ task test, "tests the project":
     of "linux":
       if (targetOS=="windows"):
         lCommandToExec = "compileAndRunTest_OSLinux_OSWindows"
-    selfExecWithDefaults("\"--putenv:paramString=" & paramString() & "\" " & "\"--putenv:compileAndRunTest=" & lFilePath & "\" " & lCommandToExec) 
+    selfExecWithDefaults("\"--putenv:compileAndRunTest=" & lFilePath & "\" " & lCommandToExec) 
   setCommand "nop"
 
 
 task cTest, "clean test the project":
   dependsOn clean test
-
+  setCommand "nop"
+  
 
 task buildBinary, "builds the binary of the project":
   build_create()
@@ -177,33 +196,38 @@ task buildBinary, "builds the binary of the project":
 
 
 task build, "builds the project":
-  dependsOn buildBinary
-  exec "strip " & buildBinaryFile
-  exec "upx --best " & buildBinaryFile
+  if not fileExists(buildBinaryFile):
+    dependsOn buildBinary
+    exec "strip " & buildBinaryFile
+    exec "upx --best " & buildBinaryFile
   setCommand "nop"
   
 
-task cBuild, "clean build the project":
+task cBuild, "clean and build":
   dependsOn clean build
   setCommand "nop"
   
 
+task run, "run the project use --putenv:runParams=\"<Parameters>\"":
+  dependsOn build
+  let params = if existsEnv("runParams"): " " & getEnv("runParams") else: ""
+  let command = (buildBinaryFile & params).strip()
+  command.exec()
+  setCommand "nop"
+
+
+task cRun, "clean and run":
+  dependsOn clean run
+  setCommand "nop"
+  
+  
 task init, "initialize a project":
   for folder in @[sourcesMainNimFolder, sourcesMainResourcesFolder, sourcesTestNimFolder, sourcesTestResourcesFolder]:
     mkdir folder
   writeFile(sourcesMainFile, "echo \"Hello world\"")
   setCommand "nop"
+    
   
-
-task run, "runs the project":
-  dependsOn build
-  var command = buildBinaryFile
-  for parameterIndex in 2..paramCount():
-    command &= ' ' & paramStr(parameterIndex)
-  exec command
-  setCommand "nop"
-
-
 task generateTravisEnvMatrix, "generate the complete travis-ci env matrix":
   const 
     lEnvs = @[@[gcGCCVersionToUseEnvVarName,"4.8","4.9","5","6","7"],@[gcNimBranchToUseEnvVarName,"master","devel"],@[gcTargetOSEnvVarName,"linux","windows"],@[gcTargetCpuEnvVarName,"amd64","i386"]]
@@ -222,12 +246,15 @@ task generateTravisEnvMatrix, "generate the complete travis-ci env matrix":
   
   lGetEnvValue("",lEnvsLow)
   echo lResult
-
   setCommand "nop"
 
 
 task params, "debug - show params":
-  echo paramString()
+  echo splitCmdLine()
   setCommand "nop"
   
-  
+task paramsDebug, "debug - show params":
+  for lIndex in 0 .. paramCount():
+    echo "[" & paramStr(lIndex) & "] "
+    setCommand "nop"
+    
