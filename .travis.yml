@@ -5,6 +5,12 @@ language: c
 compiler: gcc
 sudo: required
 
+branches:
+  only:
+  - master
+  - develop
+  - /^feature\/.*$/
+
 env:
   global:
     - NIM_VERBOSITY=0
