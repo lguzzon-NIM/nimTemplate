@@ -11,6 +11,9 @@ fi
 if [ -z ${USE_GCC+x} ]; then
 	export USE_GCC=4.8
 fi
+if [ -z ${NIM_VERBOSITY+x} ]; then
+	export NIM_VERBOSITY=0
+fi
 sudo -E add-apt-repository -y ppa:ubuntu-toolchain-r/test
 ${aptGetCmd} update
 ${aptGetInstallCmd} "gcc-${USE_GCC}" "g++-${USE_GCC}" git upx-ucl
@@ -78,7 +81,7 @@ else
 		echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
 		if [ "${NIM_TARGET_CPU}" = "i386" ]; then
 			echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
-			${aptGetInstallCmd} gcc-${USE_GCC}-multilib g++-${USE_GCC}-multilib gcc-multilib g++-multilib 
+			${aptGetInstallCmd} gcc-${USE_GCC}-multilib g++-${USE_GCC}-multilib gcc-multilib g++-multilib
 		fi
 	fi
 fi
@@ -90,6 +93,5 @@ PATH="$(pwd)/${lNimAppPath}/bin${PATH:+:$PATH}" || true
 #Script
 echo "target OS  [${NIM_TARGET_OS}]"
 echo "target CPU [${NIM_TARGET_CPU}]"
-#nim tasks
+
 nim ctest release
-#nim build release

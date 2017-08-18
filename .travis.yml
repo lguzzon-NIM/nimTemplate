@@ -7,7 +7,7 @@ sudo: required
 
 env:
   global:
-    - nimVerbosity=3
+    - NIM_VERBOSITY=3
   matrix:
     - USE_GCC=4.8 NIM_BRANCH=master NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64
     - USE_GCC=4.8 NIM_BRANCH=master NIM_TARGET_OS=linux NIM_TARGET_CPU=i386

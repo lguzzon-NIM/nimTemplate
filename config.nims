@@ -7,7 +7,7 @@ import sources/test/nim/envVarNames
 let
   targetCPU = if existsEnv(gcTargetCpuEnvVarName): getEnv(gcTargetCpuEnvVarName) else: hostCPU
   targetOS = if existsEnv(gcTargetOSEnvVarName): getEnv(gcTargetOSEnvVarName) else: hostOS
-  nimVerbosity = if existsEnv(gcNimVerbosityEnvVarName): getEnv(gcNimVerbosityEnvVarName) else: "1"
+  nimVerbosity = if existsEnv(gcNimVerbosityEnvVarName): getEnv(gcNimVerbosityEnvVarName) else: "0"
   binaryFileNameNoExt = (thisDir().extractFilename & "_" & targetOS & "_" & targetCPU)
   binaryFileExt = if (targetOS == "windows"): ".exe" else: ""
   binaryFileName = if (targetOS == "windows"): binaryFileNameNoExt & binaryFileExt else: binaryFileNameNoExt
@@ -49,7 +49,7 @@ proc paramString():string =
 
 template dependsOn (tasks: untyped) =
   for taskName in astToStr(tasks).split({',', ' '}):
-    selfExec(taskName & " " & paramString())
+    selfExecWithDefaults(taskName & " " & paramString())
 
 
 proc build_create () =
@@ -93,6 +93,8 @@ proc switchCommon() =
   switch "app", "console"
   switch "os", targetOS
   switch "cpu", targetCPU
+  if (nimVerbosity=="0"):
+    switch "hints", "off"
   case hostOS
   of "linux":
     if ((hostCPU=="amd64") and (targetCPU=="i386")):
@@ -107,8 +109,12 @@ proc getTestBinaryFilePath(aSourcePath:string): string {. inline .}=
   result = buildTestTargetFolder / splitFile(aSourcePath).name & "_" & targetOS & "_" & targetCPU & binaryFileExt
 
 
+proc selfExecWithDefaults(aCommand: string) {. inline .}= 
+  selfExec((if (nimVerbosity=="0"): "--hints:off " else: "") & aCommand)
+
+
 task tasks, "list all tasks":
-  selfExec("--listCmd")
+  selfExecWithDefaults("--listCmd")
   setCommand "nop"
   
 
@@ -156,7 +162,7 @@ task test, "tests the project":
     of "linux":
       if (targetOS=="windows"):
         lCommandToExec = "compileAndRunTest_OSLinux_OSWindows"
-    selfExec("\"--putenv:paramString=" & paramString() & "\" " & "\"--putenv:compileAndRunTest=" & lFilePath & "\" " & lCommandToExec) 
+    selfExecWithDefaults("\"--putenv:paramString=" & paramString() & "\" " & "\"--putenv:compileAndRunTest=" & lFilePath & "\" " & lCommandToExec) 
   setCommand "nop"
 
 
