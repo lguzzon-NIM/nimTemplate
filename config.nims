@@ -136,7 +136,7 @@ task tasks, "list all tasks":
   setCommand "nop"
   
 
-task clean, "cleans the project":
+task clean, "clean the project":
   if dirExists buildFolder:
     rmdir buildFolder
   else:
@@ -144,7 +144,7 @@ task clean, "cleans the project":
   setCommand "nop"
     
 
-task compileTest_OSLinux_OSWindows, "interal - Compile test program":
+task compileTest_OSLinux_OSWindows, "":
   switchCommon()
   switchPathFromFolders(sourcesTestFolder)
   switchPathFromFolders(sourcesTestResourcesFolder)
@@ -154,13 +154,13 @@ task compileTest_OSLinux_OSWindows, "interal - Compile test program":
   setCommand "compile", lFilePath
 
 
-task compileAndRunTest_OSLinux_OSWindows, "interal - Compile and run test program":
+task compileAndRunTest_OSLinux_OSWindows, "":
   dependsOn compileTest_OSLinux_OSWindows
   exec gcApplicationToTestEnvVarName & "=\"" & buildBinaryFile & "\" wine \"" & getTestBinaryFilePath(getEnv("compileAndRunTest")) & "\" 2>/dev/null" 
   setCommand "nop"
 
 
-task compileAndRunTest, "interal - Compile and run test program":
+task compileAndRunTest, "":
   let lFilePath = getEnv("compileAndRunTest")
   switchCommon()
   switchPathFromFolders(sourcesTestFolder)
@@ -172,7 +172,7 @@ task compileAndRunTest, "interal - Compile and run test program":
   setCommand "compile", lFilePath
 
 
-task test, "tests the project":
+task test, "test/s the project":
   dependsOn build
   for lFilePath in findTestFiles():
     var lCommandToExec = "compileAndRunTest"
@@ -184,18 +184,18 @@ task test, "tests the project":
   setCommand "nop"
 
 
-task cTest, "clean test the project":
+task cTest, "clean and test/s the project":
   dependsOn clean test
   setCommand "nop"
   
 
-task buildBinary, "builds the binary of the project":
+task buildBinary, "":
   build_create()
   switchCommon()
   setCommand "compile", sourcesMainFile
 
 
-task build, "builds the project":
+task build, "build the project":
   if not fileExists(buildBinaryFile):
     dependsOn buildBinary
     exec "strip " & buildBinaryFile
@@ -203,12 +203,12 @@ task build, "builds the project":
   setCommand "nop"
   
 
-task cBuild, "clean and build":
+task cBuild, "clean and build the project":
   dependsOn clean build
   setCommand "nop"
   
 
-task run, "run the project use --putenv:runParams=\"<Parameters>\"":
+task run, "run the project ex: nim --putenv:runParams=\"<Parameters>\" run":
   dependsOn build
   let params = if existsEnv("runParams"): " " & getEnv("runParams") else: ""
   let command = (buildBinaryFile & params).strip()
@@ -216,19 +216,12 @@ task run, "run the project use --putenv:runParams=\"<Parameters>\"":
   setCommand "nop"
 
 
-task cRun, "clean and run":
+task cRun, "clean and run the project ex: nim --putenv:runParams=\"<Parameters>\" run":
   dependsOn clean run
   setCommand "nop"
   
   
-task init, "initialize a project":
-  for folder in @[sourcesMainNimFolder, sourcesMainResourcesFolder, sourcesTestNimFolder, sourcesTestResourcesFolder]:
-    mkdir folder
-  writeFile(sourcesMainFile, "echo \"Hello world\"")
-  setCommand "nop"
-    
-  
-task generateTravisEnvMatrix, "generate the complete travis-ci env matrix":
+task util_TravisEnvMatrix, "generate the complete travis-ci env matrix":
   const 
     lEnvs = @[@[gcGCCVersionToUseEnvVarName,"4.8","4.9","5","6","7"],@[gcNimBranchToUseEnvVarName,"master","devel"],@[gcTargetOSEnvVarName,"linux","windows"],@[gcTargetCpuEnvVarName,"amd64","i386"]]
     lEnvsLow = lEnvs.low
@@ -248,13 +241,3 @@ task generateTravisEnvMatrix, "generate the complete travis-ci env matrix":
   echo lResult
   setCommand "nop"
 
-
-task params, "debug - show params":
-  echo splitCmdLine()
-  setCommand "nop"
-  
-task paramsDebug, "debug - show params":
-  for lIndex in 0 .. paramCount():
-    echo "[" & paramStr(lIndex) & "] "
-    setCommand "nop"
-    
