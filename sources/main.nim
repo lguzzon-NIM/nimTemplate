@@ -1,5 +1,5 @@
 
-import consts
+import mainConsts
 
 proc getMessage*: string =
     result = cHelloWorld

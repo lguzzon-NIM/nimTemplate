@@ -4,9 +4,9 @@ import os
 import osproc
 import strutils
 
-import envVarNames
+import scriptsEnvVarNames
 
-import consts
+import mainConsts
 import main
 
 suite "main integration-test suite":

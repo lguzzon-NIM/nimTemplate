@@ -1,9 +1,12 @@
 *
 !.gitignore
 !/.travis.yml
-!*.nim
-!*.nims
-!*.md
+!/*.nim
+!/*.nims
+!/*.nimble
+!/*.md
 !/README*
 !/LICENSE
-!/sources
+!/sources/
+!/tests/
+!/scripts/

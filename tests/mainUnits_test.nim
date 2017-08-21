@@ -4,7 +4,7 @@ import os
 import osproc
 import strutils
 
-import consts
+import mainConsts
 import main
 
 
