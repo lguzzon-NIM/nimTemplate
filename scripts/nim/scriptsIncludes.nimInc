@@ -4,26 +4,27 @@ import ospaths
 
 include "scriptsEnvVarNames.nimInc"
 
+
 const
     gcWindowsStr              = "windows"
     gcCompilingTypePackage    = "lguzzon.compilingType.Package"
     gcCompilingTypeApp        = "lguzzon.compilingType.App"
     gcCompilingType           = "lguzzon.compilingType"
-    
+
     nimFileExt                = "nim"
-  
+
     sourceDirName          = "sources"
     testDirName            = "tests"
-    
+
     buildDirName           = "builds"
     cacheDirName           = "caches"
     targetDirName          = "targets"
     scriptDirName          = "scripts"
-    
+
     mainFileName            = "main." & nimFileExt 
-  
+
     testDir              = testDirName
-  
+
     buildDir             = buildDirName
     buildCacheDir          = buildDir / cacheDirName
     buildCacheTestDir    = buildCacheDir / testDirName
@@ -33,7 +34,8 @@ const
     scriptDir            = scriptDirName
     scriptNimDir         = scriptDir / nimFileExt
 
-proc getNameFromDir(aPath: string) : string =
+
+proc getNameFromDir(aPath: string): string =
     result = aPath.splitFile.name
     let lRFind = result.rFind({'-'})
     if lRFind > -1: 
@@ -41,38 +43,46 @@ proc getNameFromDir(aPath: string) : string =
     result = result
 
 
-proc getSourceDir() : string = 
+proc getSourceDir(): string = 
   if dirExists(sourceDirName):
     result = sourceDirName
   else:
-    let lResult = getNameFromDir(thisDir())
+    let lResult = thisDir().getNameFromDir
     if dirExists(lResult):
       result = lResult
     else:
       result = "."
-      
-proc getTargetOS () : string = 
+
+
+proc getTargetOS (): string = 
   if existsEnv(gcTargetOSEnvVarName): getEnv(gcTargetOSEnvVarName) else: hostOS
 
-proc getTargetCPU () : string =
+
+proc getTargetCPU (): string =
    if existsEnv(gcTargetCpuEnvVarName): getEnv(gcTargetCpuEnvVarName) else: hostCPU
 
-proc getNimVerbosity () : string =
+
+proc getNimVerbosity (): string =
    if existsEnv(gcNimVerbosityEnvVarName): getEnv(gcNimVerbosityEnvVarName) else: "0"
 
-proc getBinaryFileNameNoExt() : string =
-   thisDir().extractFilename & "_" & getTargetOS() & "_" & getTargetCPU()
 
-proc getBinaryFileExt () : string =
+proc getBinaryFileNameNoExt(): string =
+   thisDir().getNameFromDir & "_" & getTargetOS() & "_" & getTargetCPU()
+
+
+proc getBinaryFileExt (): string =
    if (getTargetOS() == gcWindowsStr): ".exe" else: ""
 
-proc getBinaryFileName () : string =
+
+proc getBinaryFileName (): string =
    if (getTargetOS() == gcWindowsStr): getBinaryFileNameNoExt() & getBinaryFileExt() else: getBinaryFileNameNoExt()
 
-proc getBuildBinaryFile () : string =
+
+proc getBuildBinaryFile (): string =
    buildTargetDir  / getBinaryFileName()
 
-proc splitCmdLine() : tuple[options, command, params: string] =
+
+proc splitCmdLine(): tuple[options, command, params: string] =
   var lIndex = 1
   let lCount = paramCount()
   var lResult = ""
@@ -92,6 +102,7 @@ proc splitCmdLine() : tuple[options, command, params: string] =
     lIndex.inc
   result.params = lResult.strip()
 
+
 template selfExecWithDefaults (aCommand: string) = 
   var lCmdLine = splitCmdLine()
   if (getNimVerbosity() == "0") and (not lCmdLine.options.contains("--hint")):
@@ -101,8 +112,8 @@ template selfExecWithDefaults (aCommand: string) =
     exec("nim " & lCommand.strip)
   else:
     selfExec(lCommand.strip)
-  
-  
+
+
 template dependsOn (tasks: untyped) =
   for taskName in astToStr(tasks).split({',', ' '}):
     selfExecWithDefaults(taskName)
@@ -151,16 +162,17 @@ proc switchCommon () =
     discard
 
 
-proc getTestBinaryFilePath (aSourcePath:string): string =
+proc getTestBinaryFilePath (aSourcePath: string): string =
   result = buildTargetTestDir / splitFile(aSourcePath).name & "_" & getTargetOS() & "_" & getTargetCPU() & getBinaryFileExt()
 
 
 const
   lcTestAppFileNameEnvVarName = "testAppFileName"
 
-proc getSourceMainFile () : string =
+
+proc getSourceMainFile (): string =
   let lSourceDir = getSourceDir()
-  let lPackageFile = lSourceDir / getNameFromDir(thisDir()) & "." & nimFileExt
+  let lPackageFile = lSourceDir / thisDir().getNameFromDir & "." & nimFileExt
   if fileExists(lPackageFile):
     result = lPackageFile
   else:
@@ -170,8 +182,8 @@ proc getSourceMainFile () : string =
     else:
       let lMessage = "Not found package source [" & lPackageFile & "] or main source [" & lMainFile & "] [" & thisDir() & "]"
       raiseAssert(lMessage)
-  
-  
+
+
 mode = if getNimVerbosity() == "0": ScriptMode.Silent else: ScriptMode.Verbose 
 
 
@@ -181,14 +193,15 @@ task Tasks, "list all tasks":
 
 task Settings, "display alla settings":
   let lInfos =  """
-  Interpreter : [$1]
-  Source Dir  : [$4]
-  Source Main : [$5]
-  Target OS   : [$2]
-  Target CPU  : [$3]
-  Binary File : [$6]
+  Interpreter: [$1]
+  Source Dir: [$4]
+  Source Main: [$5]
+  Target OS: [$2]
+  Target CPU: [$3]
+  Binary File: [$6]
   """ 
   echo lInfos % [if lcIsNimble: "Nimble" else: "Nim", getTargetOS(), getTargetCPU(),  getSourceDir(), getSourceMainFile(), getBuildBinaryFile()]  
+
 
 task Clean, "clean the project":
   if dirExists(buildDir):
@@ -237,7 +250,7 @@ task Test, "test/s the project":
 
 task CTest, "clean and test/s the project":
   dependsOn Clean Test
-  
+
 
 task BuildBinary, "":
   build_create()
@@ -250,11 +263,11 @@ task Build, "build the project":
     dependsOn BuildBinary
     exec "strip " & getBuildBinaryFile()
     exec "upx --best " & getBuildBinaryFile()
-  
+
 
 task CBuild, "clean and build the project":
   dependsOn Clean Build
-  
+
 
 task Run, "run the project ex: nim --putenv:runParams=\"<Parameters>\" run":
   dependsOn Build
@@ -265,8 +278,8 @@ task Run, "run the project ex: nim --putenv:runParams=\"<Parameters>\" run":
 
 task CRun, "clean and run the project ex: nim --putenv:runParams=\"<Parameters>\" run":
   dependsOn Clean Run
-  
-  
+
+
 task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
   const 
     lEnvs = @[@[gcGCCVersionToUseEnvVarName,"4.8","4.9","5","6","7"],@[gcNimBranchToUseEnvVarName,"master","devel"],@[gcTargetOSEnvVarName,"linux",gcWindowsStr],@[gcTargetCpuEnvVarName,"amd64","i386"]]
@@ -282,7 +295,7 @@ task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
         lGetEnvValue( lHeader & lEnvs[aIndex][lIndex], aIndex + 1)
     else:
       lResult &= aResult & "\n"
-  
+
   lGetEnvValue("",lEnvsLow)
   echo lResult
 

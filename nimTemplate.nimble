@@ -5,9 +5,10 @@ const
 import sets
 include "scripts/nim/scriptsIncludes.nimInc"
 
+
 proc getInstallFiles (): seq[string] =
 
-  proc lGetInstallFiles (aDir:string; aExts:HashSet[string]): seq[string] =
+  proc lGetInstallFiles (aDir: string; aExts: HashSet[string]): seq[string] =
     result = newSeq[string]()
     for lFilePath in listFiles(aDir):
       let lExt = lFilePath.splitFile.ext.toLower
@@ -21,12 +22,12 @@ proc getInstallFiles (): seq[string] =
   result.add(lGetInstallFiles(scriptNimDir, toSet([".niminc"])))
 
 # Package
-version = "0.0.0"
-author = "Luca Guzzon"
-description = "nimTemplate [PLEASE CHANGE ME]"
-license = "MIT"
+version      = "0.0.0"
+author       = "Luca Guzzon"
+description  = "nimTemplate [PLEASE CHANGE ME]"
+license      = "MIT"
 
-skipDirs = @[testDir, buildDir, scriptDir]
+skipDirs     = @[testDir, buildDir, scriptDir]
 installFiles = getInstallFiles()
 
 # Dependencies

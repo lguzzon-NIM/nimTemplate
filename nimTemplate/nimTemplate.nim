@@ -1,6 +1,7 @@
 
 import nimTemplateConsts
 
+
 proc getMessage*: string =
     result = cHelloWorld
 
