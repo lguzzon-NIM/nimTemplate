@@ -2,7 +2,7 @@
 import strutils 
 import ospaths
 
-include "scriptsEnvVarNames.inc"
+include "scriptsEnvVarNames.nimInc"
 
 const
     gcWindowsStr              = "windows"

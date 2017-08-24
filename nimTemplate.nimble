@@ -3,22 +3,22 @@ const
   lcisNimble = true
 
 import sets
-include "scripts/nim/scriptsIncludes.inc"
+include "scripts/nim/scriptsIncludes.nimInc"
 
 proc getInstallFiles (): seq[string] =
-  let lExts = toSet([".nim", ".md"])
 
-  proc lGetInstallFiles (aDir:string): seq[string] =
+  proc lGetInstallFiles (aDir:string; aExts:HashSet[string]): seq[string] =
     result = newSeq[string]()
     for lFilePath in listFiles(aDir):
       let lExt = lFilePath.splitFile.ext.toLower
-      if lExt in lExts:
+      if lExt in aExts:
         result.add(lFilePath)
     for lChildDirPath in listDirs(aDir):
-      result.add(lGetInstallFiles(lChildDirPath))
+      result.add(lGetInstallFiles(lChildDirPath, aExts))
     
-  result = @[scriptDir/"nim"/"scriptsIncludes.inc",scriptDir/"nim"/"scriptsEnvVarNames.inc", "LICENSE", "config.nims", "README.md"]
-  result.add(lGetInstallFiles(getSourceDir()))
+  result = @["LICENSE", "config.nims", "README.md"]
+  result.add(lGetInstallFiles(getSourceDir(), toSet([".nim", ".md"])))
+  result.add(lGetInstallFiles(scriptNimDir, toSet([".niminc"])))
 
 # Package
 version = "0.0.0"
