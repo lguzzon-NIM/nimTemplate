@@ -105,7 +105,5 @@ export PATH
 PATH="$(pwd)/${lNimAppPath}/bin${PATH:+:$PATH}" || true
 
 #Script
-echo "target OS  [${NIM_TARGET_OS}]"
-echo "target CPU [${NIM_TARGET_CPU}]"
-
-nim ctest release
+nim Settings
+nim CTest release

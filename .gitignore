@@ -7,6 +7,6 @@
 !/*.md
 !/README*
 !/LICENSE
-!/sources/
+!/nimTemplate/
 !/tests/
 !/scripts/

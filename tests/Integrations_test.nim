@@ -4,11 +4,11 @@ import os
 import osproc
 import strutils
 
-import mainConsts
-import main
+import nimTemplateConsts
+import nimTemplate
 
 include "../scripts/nim/scriptsEnvVarNames.inc"
 
-suite "main integration-test suite":
+suite "integration-test suite":
   test "getMessage excecuting the app":
     assert(cHelloWorld == execProcess(getEnv(gcApplicationToTestEnvVarName)).strip())

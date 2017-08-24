@@ -1,5 +1,5 @@
 
-import mainConsts
+import nimTemplateConsts
 
 proc getMessage*: string =
     result = cHelloWorld
