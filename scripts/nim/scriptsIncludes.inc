@@ -181,12 +181,12 @@ task Tasks, "list all tasks":
 
 task Settings, "display alla settings":
   let lInfos =  """
-  Interpreter : [$#]
-  Target OS   : [$#]
-  Target CPU  : [$#]
-  Source Dir  : [$#]
-  Source File : [$#]
-  Binary File : [$#]
+  Interpreter : [$1]
+  Source Dir  : [$4]
+  Source Main : [$5]
+  Target OS   : [$2]
+  Target CPU  : [$3]
+  Binary File : [$6]
   """ 
   echo lInfos % [if lcIsNimble: "Nimble" else: "Nim", getTargetOS(), getTargetCPU(),  getSourceDir(), getSourceMainFile(), getBuildBinaryFile()]  
 
