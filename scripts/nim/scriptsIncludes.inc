@@ -1,0 +1,288 @@
+
+import strutils 
+import ospaths
+
+include "scriptsEnvVarNames.inc"
+
+const
+    gcWindowsStr              = "windows"
+    gcCompilingTypePackage    = "lguzzon.compilingType.Package"
+    gcCompilingTypeApp        = "lguzzon.compilingType.App"
+    gcCompilingType           = "lguzzon.compilingType"
+    
+    nimFileExt                = "nim"
+  
+    sourceDirName          = "sources"
+    testDirName            = "tests"
+    
+    buildDirName           = "builds"
+    cacheDirName           = "caches"
+    targetDirName          = "targets"
+    scriptDirName          = "scripts"
+    
+    mainFileName            = "main." & nimFileExt 
+  
+    testDir              = testDirName
+  
+    buildDir             = buildDirName
+    buildCacheDir          = buildDir / cacheDirName
+    buildCacheTestDir    = buildCacheDir / testDirName
+    buildTargetDir         = buildDir / targetDirName
+    buildTargetTestDir   = buildTargetDir & "_" & testDirName
+
+    scriptDir            = scriptDirName
+    scriptNimDir         = scriptDir / nimFileExt
+
+proc getNameFromDir(aPath: string) : string =
+    result = aPath.splitFile.name
+    let lRFind = result.rFind({'-'})
+    if lRFind > -1: 
+      result.delete(lRFind, <result.len)
+    result = result
+
+
+proc getSourceDir() : string = 
+  if dirExists(sourceDirName):
+    result = sourceDirName
+  else:
+    let lResult = getNameFromDir(thisDir())
+    if dirExists(lResult):
+      result = lResult
+    else:
+      result = "."
+      
+proc getTargetOS () : string = 
+  if existsEnv(gcTargetOSEnvVarName): getEnv(gcTargetOSEnvVarName) else: hostOS
+
+proc getTargetCPU () : string =
+   if existsEnv(gcTargetCpuEnvVarName): getEnv(gcTargetCpuEnvVarName) else: hostCPU
+
+proc getNimVerbosity () : string =
+   if existsEnv(gcNimVerbosityEnvVarName): getEnv(gcNimVerbosityEnvVarName) else: "0"
+
+proc getBinaryFileNameNoExt() : string =
+   thisDir().extractFilename & "_" & getTargetOS() & "_" & getTargetCPU()
+
+proc getBinaryFileExt () : string =
+   if (getTargetOS() == gcWindowsStr): ".exe" else: ""
+
+proc getBinaryFileName () : string =
+   if (getTargetOS() == gcWindowsStr): getBinaryFileNameNoExt() & getBinaryFileExt() else: getBinaryFileNameNoExt()
+
+proc getBuildBinaryFile () : string =
+   buildTargetDir  / getBinaryFileName()
+
+proc splitCmdLine() : tuple[options, command, params: string] =
+  var lIndex = 1
+  let lCount = paramCount()
+  var lResult = ""
+  while lIndex <= lCount:
+    if paramStr(lIndex)[0] == '-':
+      lResult &= " " & "\"" & paramStr(lIndex) & "\""      
+      lIndex.inc
+    else:
+      break
+  result.options = lResult.strip()
+  if (lIndex <= lCount):
+    result.command = paramStr(lIndex).strip()
+    lIndex.inc
+  lResult = ""
+  while lIndex <= lCount:
+    lResult &= " "  & paramStr(lIndex) 
+    lIndex.inc
+  result.params = lResult.strip()
+
+template selfExecWithDefaults (aCommand: string) = 
+  var lCmdLine = splitCmdLine()
+  if (getNimVerbosity() == "0") and (not lCmdLine.options.contains("--hint")):
+    lCmdLine.options &= " --hints:off"
+  let lCommand = lCmdLine.options & " " & aCommand.strip() & " " & lCmdLine.params
+  if lcIsNimble:
+    exec("nim " & lCommand.strip)
+  else:
+    selfExec(lCommand.strip)
+  
+  
+template dependsOn (tasks: untyped) =
+  for taskName in astToStr(tasks).split({',', ' '}):
+    selfExecWithDefaults(taskName)
+
+
+proc build_create () =
+  for Dir in @[buildCacheDir, buildTargetDir, buildTargetTestDir]:
+    if not dirExists(Dir):
+      mkdir Dir
+
+
+proc Dirs (aDirPath: string): seq[string] =
+  result = newSeq[string]()
+  result.add(aDirPath)
+  for lChildDirPath in listDirs(aDirPath):
+    result.add(Dirs(lChildDirPath))
+
+
+proc findTestFiles (): seq[string] =
+  result = newSeq[string]()
+  for lDirPath in Dirs(testDir):
+    for lFilePath in listFiles(lDirPath):
+      if lFilePath.endsWith("_test.nim"):
+        result.add(lFilePath)
+
+
+proc switchCommon () =
+  let lNimVerbosity = getNimVerbosity()
+  if splitCmdLine().params == "release":
+    switch "define", "release"
+  switch "verbosity", lNimVerbosity
+  switch "out", getBuildBinaryFile()
+  switch "nimcache", buildCacheDir
+  switch "app", "console"
+  switch "os", getTargetOS()
+  let lTargetCPU = getTargetCPU()
+  switch "cpu", lTargetCPU
+  if (lNimVerbosity == "0"):
+    switch "hints", "off"
+  case hostOS
+  of "linux":
+    if ((hostCPU == "amd64") and (lTargetCPU == "i386")):
+      switch "passC", "-m32"
+      switch "passL", "-m32"
+  of gcWindowsStr:
+    discard
+
+
+proc getTestBinaryFilePath (aSourcePath:string): string =
+  result = buildTargetTestDir / splitFile(aSourcePath).name & "_" & getTargetOS() & "_" & getTargetCPU() & getBinaryFileExt()
+
+
+const
+  lcTestAppFileNameEnvVarName = "testAppFileName"
+
+proc getSourceMainFile () : string =
+  let lSourceDir = getSourceDir()
+  let lPackageFile = lSourceDir / getNameFromDir(thisDir()) & "." & nimFileExt
+  if fileExists(lPackageFile):
+    result = lPackageFile
+  else:
+    let lMainFile = lSourceDir / mainFileName
+    if fileExists(lMainFile):
+      result = lMainFile
+    else:
+      let lMessage = "Not found package source [" & lPackageFile & "] or main source [" & lMainFile & "] [" & thisDir() & "]"
+      raiseAssert(lMessage)
+  
+  
+mode = if getNimVerbosity() == "0": ScriptMode.Silent else: ScriptMode.Verbose 
+
+
+task Tasks, "list all tasks":
+  selfExecWithDefaults("--listCmd")
+
+
+task Settings, "display alla settings":
+  let lInfos =  """
+  Interpreter : [$#]
+  Target OS   : [$#]
+  Target CPU  : [$#]
+  Source Dir  : [$#]
+  Source File : [$#]
+  Binary File : [$#]
+  """ 
+  echo lInfos % [if lcIsNimble: "Nimble" else: "Nim", getTargetOS(), getTargetCPU(),  getSourceDir(), getSourceMainFile(), getBuildBinaryFile()]  
+
+task Clean, "clean the project":
+  if dirExists(buildDir):
+    rmdir buildDir
+  else:
+    echo "Nothing to clean"
+
+
+task CompileTest_OSLinux_OSWindows, "":
+  switchCommon()
+  switch "path", getSourceDir()
+  switch "path", scriptNimDir
+  switch "nimcache", buildCacheTestDir
+  let lFilePath = getEnv(lcTestAppFileNameEnvVarName)
+  switch "out", getTestBinaryFilePath(lFilePath)
+  setCommand "compile", lFilePath
+
+
+task CompileAndRunTest_OSLinux_OSWindows, "":
+  dependsOn CompileTest_OSLinux_OSWindows
+  exec gcApplicationToTestEnvVarName & "=\"" & getBuildBinaryFile() & "\" wine \"" & getTestBinaryFilePath(getEnv(lcTestAppFileNameEnvVarName)) & "\" 2>/dev/null" 
+
+
+task CompileAndRunTest, "":
+  let lFilePath = getEnv(lcTestAppFileNameEnvVarName)
+  switchCommon()
+  switch "path", getSourceDir()
+  switch "path", scriptNimDir
+  switch "nimcache", buildCacheTestDir
+  switch "out", getTestBinaryFilePath(lFilePath)
+  switch "putenv", gcApplicationToTestEnvVarName & "=" & getBuildBinaryFile()
+  switch "run"
+  setCommand "compile", lFilePath
+
+
+task Test, "test/s the project":
+  dependsOn Build
+  for lFilePath in findTestFiles():
+    var lCommandToExec = "CompileAndRunTest"
+    case hostOS
+    of "linux":
+      if (getTargetOS() == gcWindowsStr):
+        lCommandToExec = "CompileAndRunTest_OSLinux_OSWindows"
+    selfExecWithDefaults("\"--putenv:" & lcTestAppFileNameEnvVarName & "=" & lFilePath & "\" " & lCommandToExec) 
+
+
+task CTest, "clean and test/s the project":
+  dependsOn Clean Test
+  
+
+task BuildBinary, "":
+  build_create()
+  switchCommon()
+  setCommand "compile", getSourceMainFile()
+
+
+task Build, "build the project":
+  if not fileExists(getBuildBinaryFile()):
+    dependsOn BuildBinary
+    exec "strip " & getBuildBinaryFile()
+    exec "upx --best " & getBuildBinaryFile()
+  
+
+task CBuild, "clean and build the project":
+  dependsOn Clean Build
+  
+
+task Run, "run the project ex: nim --putenv:runParams=\"<Parameters>\" run":
+  dependsOn Build
+  let params = if existsEnv("runParams"): " " & getEnv("runParams") else: ""
+  let command = (getBuildBinaryFile() & params).strip()
+  command.exec()
+
+
+task CRun, "clean and run the project ex: nim --putenv:runParams=\"<Parameters>\" run":
+  dependsOn Clean Run
+  
+  
+task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
+  const 
+    lEnvs = @[@[gcGCCVersionToUseEnvVarName,"4.8","4.9","5","6","7"],@[gcNimBranchToUseEnvVarName,"master","devel"],@[gcTargetOSEnvVarName,"linux",gcWindowsStr],@[gcTargetCpuEnvVarName,"amd64","i386"]]
+    lEnvsLow = lEnvs.low
+    lEnvsHigh = lEnvs.high
+  var  
+    lResult = ""
+
+  proc lGetEnvValue(aResult: string, aIndex: int) =
+    if aIndex <= lEnvsHigh:
+      let lHeader = aResult & " " & lEnvs[aIndex][0] & "="
+      for lIndex in 1..lEnvs[aIndex].high:
+        lGetEnvValue( lHeader & lEnvs[aIndex][lIndex], aIndex + 1)
+    else:
+      lResult &= aResult & "\n"
+  
+  lGetEnvValue("",lEnvsLow)
+  echo lResult
+
