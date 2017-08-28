@@ -1,4 +1,5 @@
 
+import sets
 import strutils 
 import ospaths
 
@@ -7,9 +8,6 @@ include "scriptsEnvVarNames.nimInc"
 
 const
     gcWindowsStr              = "windows"
-    gcCompilingTypePackage    = "lguzzon.compilingType.Package"
-    gcCompilingTypeApp        = "lguzzon.compilingType.App"
-    gcCompilingType           = "lguzzon.compilingType"
 
     nimFileExt                = "nim"
 
@@ -184,6 +182,27 @@ proc getSourceMainFile (): string =
       raiseAssert(lMessage)
 
 
+proc NimbleNimIncContent (): string =
+  
+  proc lNimbleNimIncContent (aDir: string; aExts: HashSet[string]): seq[string] =
+    result = newSeq[string]()
+    for lFilePath in listFiles(aDir):
+      let lExt = lFilePath.splitFile.ext.toLower
+      if lExt in aExts:
+        result.add(lFilePath)
+    for lChildDirPath in listDirs(aDir):
+      result.add(lNimbleNimIncContent(lChildDirPath, aExts))
+
+  let lSkipDirs = @[testDir, buildDir, scriptDir]
+  var lInstallFiles = @["LICENSE", "config.nims", "README.md"]
+  lInstallFiles.add(lNimbleNimIncContent(getSourceDir(), toSet([".nim", ".md"])))
+  lInstallFiles.add(lNimbleNimIncContent(scriptNimDir, toSet([".niminc"])))
+  result = ("""
+  skipDirs     = @$1
+  installFiles = @$2
+  """%[lSkipDirs.repr, lInstallFiles.repr]).unindent
+
+
 mode = if getNimVerbosity() == "0": ScriptMode.Silent else: ScriptMode.Verbose 
 
 
@@ -193,15 +212,69 @@ task Tasks, "list all tasks":
 
 task Settings, "display alla settings":
   let lInfos =  """
-  Interpreter: [$1]
-  Source Dir: [$4]
-  Source Main: [$5]
-  Target OS: [$2]
-  Target CPU: [$3]
-  Binary File: [$6]
+  Interpreter : [$1]
+  Source Dir  : [$4]
+  Source Main : [$5]
+  Target OS   : [$2]
+  Target CPU  : [$3]
+  Binary File : [$6]
   """ 
   echo lInfos % [if lcIsNimble: "Nimble" else: "Nim", getTargetOS(), getTargetCPU(),  getSourceDir(), getSourceMainFile(), getBuildBinaryFile()]  
 
+
+task CreateNew, "create a new project from " & "n" & "imTemplate":
+  #To avoid string replace ... ;)
+  let lRepoURL = "https://github.com/lguzzon/" & "n" & "imTemplate.git" 
+  let lString = lRepoURL.rsplit('/',1)[1].splitFile.name
+
+
+  proc checkProjectName(aProjectName: string, aValidCharSet: set[char]): bool =
+    result = true
+    for lChar in aProjectName:
+      if not (lChar in aValidCharSet):
+        result = false
+        break          
+
+
+  proc resetProjectDir(aProjectDir, aNewProjectName: string) =
+    var lFSItemsToMove = newSeq[(string, string)]()
+    rmDir(aProjectDir / ".git")
+    for lDirPath in Dirs(aProjectDir):
+      for lFilePath in listFiles(lDirPath):
+        let lOldString = lFilePath.splitFile 
+        let lNewString = lOldString.name.replace(lString,aNewProjectName)
+        if lNewString != lOldString.name:
+          lFSItemsToMove.add((lFilePath, lOldString.dir / lNewString & lOldString.ext))
+    for lDirPath in Dirs(aProjectDir):
+      let lOldString = lDirPath.splitFile 
+      let lNewString = lOldString.name.replace(lString,aNewProjectName)
+      if lNewString != lOldString.name:
+        lFSItemsToMove.add((lDirPath, lOldString.dir / lNewString & lOldString.ext))
+    for lToMove in lFSItemsToMove:
+      lToMove[0].mvFile(lToMove[1])
+    for lDirPath in Dirs(aProjectDir):
+      for lFilePath in listFiles(lDirPath):
+        let lOldString = lFilePath.readFile
+        let lNewString = lOldString.replace(lString,aNewProjectName)
+        if lNewString != lOldString:
+          lFilePath.writeFile(lNewString)
+          
+  let lNewProjectName = splitCmdLine().params
+  let lValidCharSet = {'a' .. 'z', 'A' .. 'Z', '0' .. '9', '_'} 
+  let lParentDir = thisDir() / ".."
+  if  lNewProjectName == "":
+    echo "Please provide new project name as param"
+    return
+  if  not checkProjectName(lNewProjectName, lValidCharSet):
+    echo "Please provide a project name not containing invalid cahrs $1"%["{'a'..'z', 'A'..'Z', '0'..'9', '_'}"]
+    return
+  let lNewProjectDir = lParentDir / lNewProjectName
+  echo "Cloning [$1] to [$2]" % [lRepoURL, lNewProjectDir]
+  exec("git clone -b $3 --single-branch $1 $2" % [lRepoURL, lNewProjectDir, "develop"])
+  echo "Resetting files and dirs ..."
+  resetProjectDir(lNewProjectDir,lNewProjectName)
+  echo "... done"
+    
 
 task Clean, "clean the project":
   if dirExists(buildDir):
@@ -253,6 +326,7 @@ task CTest, "clean and test/s the project":
 
 
 task BuildBinary, "":
+  dependsOn NInstallDeps
   build_create()
   switchCommon()
   setCommand "compile", getSourceMainFile()
@@ -269,6 +343,14 @@ task CBuild, "clean and build the project":
   dependsOn Clean Build
 
 
+task BuildToDeploy, "Build the project ready to deploy":
+  selfExecWithDefaults("--passC:-O4 --passL:-static Test")
+
+
+task CBuildToDeploy, "clean and build the project ready to deploy":
+  selfExecWithDefaults("--passC:-O4 --passL:-static CTest")
+
+
 task Run, "run the project ex: nim --putenv:runParams=\"<Parameters>\" run":
   dependsOn Build
   let params = if existsEnv("runParams"): " " & getEnv("runParams") else: ""
@@ -279,6 +361,25 @@ task Run, "run the project ex: nim --putenv:runParams=\"<Parameters>\" run":
 task CRun, "clean and run the project ex: nim --putenv:runParams=\"<Parameters>\" run":
   dependsOn Clean Run
 
+
+task NInstall, "install project using nimble":
+  (scriptNimDir / "nimble.nimInc").writeFile(NimbleNimIncContent())
+  exec("nimble -y install")
+
+
+task NInstallDeps, "install project dependencies using nimble":
+  (scriptNimDir / "nimble.nimInc").writeFile(NimbleNimIncContent())
+  exec("nimble -y install -d")
+
+
+task NUninstall, "Uninstall project using nimble":
+  exec("nimble -y uninstall " & thisDir().getNameFromDir)
+
+
+task NCompile, "Compile using nimble":
+  (scriptNimDir / "nimble.nimInc").writeFile(NimbleNimIncContent())
+  exec("nimble -y c " & getSourceMainFile())
+  
 
 task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
   const 
@@ -298,4 +399,3 @@ task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
 
   lGetEnvValue("",lEnvsLow)
   echo lResult
-
