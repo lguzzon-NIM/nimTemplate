@@ -4,8 +4,8 @@ import os
 import osproc
 import strutils
 
-import nimTemplateConsts
 import nimTemplate
+import nimTemplate.consts
 
 include "../scripts/nim/scriptsEnvVarNames.nimInc"
 

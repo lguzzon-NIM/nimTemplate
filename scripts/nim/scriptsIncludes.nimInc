@@ -7,11 +7,10 @@ include "scriptsEnvVarNames.nimInc"
 
 
 const
-    gcWindowsStr              = "windows"
+    gcWindowsStr           = "windows"
 
-    nimFileExt                = "nim"
+    nimFileExt             = "nim"
 
-    sourceDirName          = "sources"
     testDirName            = "tests"
 
     buildDirName           = "builds"
@@ -19,37 +18,28 @@ const
     targetDirName          = "targets"
     scriptDirName          = "scripts"
 
-    mainFileName            = "main." & nimFileExt 
-
     testDir              = testDirName
 
     buildDir             = buildDirName
-    buildCacheDir          = buildDir / cacheDirName
+    buildCacheDir        = buildDir / cacheDirName
     buildCacheTestDir    = buildCacheDir / testDirName
-    buildTargetDir         = buildDir / targetDirName
-    buildTargetTestDir   = buildTargetDir & "_" & testDirName
+    buildTargetDir       = buildDir / targetDirName
+    buildTargetTestDir   = " $1_$2"%[buildTargetDir, testDirName]
 
     scriptDir            = scriptDirName
     scriptNimDir         = scriptDir / nimFileExt
 
 
 proc getNameFromDir(aPath: string): string =
-    result = aPath.splitFile.name
-    let lRFind = result.rFind({'-'})
-    if lRFind > -1: 
-      result.delete(lRFind, <result.len)
-    result = result
+  result = aPath.splitFile.name
+  let lRFind = result.rFind({'-'})
+  if lRFind > -1: 
+    result.delete(lRFind, <result.len)
+  result = result
 
 
 proc getSourceDir(): string = 
-  if dirExists(sourceDirName):
-    result = sourceDirName
-  else:
-    let lResult = thisDir().getNameFromDir
-    if dirExists(lResult):
-      result = lResult
-    else:
-      result = "."
+  result = "."
 
 
 proc getTargetOS (): string = 
@@ -65,7 +55,7 @@ proc getNimVerbosity (): string =
 
 
 proc getBinaryFileNameNoExt(): string =
-   thisDir().getNameFromDir & "_" & getTargetOS() & "_" & getTargetCPU()
+   "$1_$2_$3"%[thisDir().getNameFromDir(), getTargetOS(), getTargetCPU()]
 
 
 proc getBinaryFileExt (): string =
@@ -86,7 +76,7 @@ proc splitCmdLine(): tuple[options, command, params: string] =
   var lResult = ""
   while lIndex <= lCount:
     if paramStr(lIndex)[0] == '-':
-      lResult &= " " & "\"" & paramStr(lIndex) & "\""      
+      lResult &= " \"$1\""%[paramStr(lIndex)]
       lIndex.inc
     else:
       break
@@ -161,7 +151,7 @@ proc switchCommon () =
 
 
 proc getTestBinaryFilePath (aSourcePath: string): string =
-  result = buildTargetTestDir / splitFile(aSourcePath).name & "_" & getTargetOS() & "_" & getTargetCPU() & getBinaryFileExt()
+  result = "$1_$2_$3$4"%[buildTargetTestDir / splitFile(aSourcePath).name, getTargetOS(), getTargetCPU(), getBinaryFileExt()]
 
 
 const
@@ -169,38 +159,12 @@ const
 
 
 proc getSourceMainFile (): string =
-  let lSourceDir = getSourceDir()
-  let lPackageFile = lSourceDir / thisDir().getNameFromDir & "." & nimFileExt
-  if fileExists(lPackageFile):
-    result = lPackageFile
+  let lMainFile = getSourceDir() / thisDir().getNameFromDir() & "." & nimFileExt
+  if fileExists(lMainFile):
+    result = lMainFile
   else:
-    let lMainFile = lSourceDir / mainFileName
-    if fileExists(lMainFile):
-      result = lMainFile
-    else:
-      let lMessage = "Not found package source [" & lPackageFile & "] or main source [" & lMainFile & "] [" & thisDir() & "]"
-      raiseAssert(lMessage)
-
-
-proc NimbleNimIncContent (): string =
-  
-  proc lNimbleNimIncContent (aDir: string; aExts: HashSet[string]): seq[string] =
-    result = newSeq[string]()
-    for lFilePath in listFiles(aDir):
-      let lExt = lFilePath.splitFile.ext.toLower
-      if lExt in aExts:
-        result.add(lFilePath)
-    for lChildDirPath in listDirs(aDir):
-      result.add(lNimbleNimIncContent(lChildDirPath, aExts))
-
-  let lSkipDirs = @[testDir, buildDir, scriptDir]
-  var lInstallFiles = @["LICENSE", "config.nims", "README.md"]
-  lInstallFiles.add(lNimbleNimIncContent(getSourceDir(), toSet([".nim", ".md"])))
-  lInstallFiles.add(lNimbleNimIncContent(scriptNimDir, toSet([".niminc"])))
-  result = ("""
-  skipDirs     = @$1
-  installFiles = @$2
-  """%[lSkipDirs.repr, lInstallFiles.repr]).unindent
+    let lMessage = "Not found source [$1] in [$2]"%[lMainFile, thisDir()]
+    raiseAssert(lMessage)
 
 
 mode = if getNimVerbosity() == "0": ScriptMode.Silent else: ScriptMode.Verbose 
@@ -277,8 +241,13 @@ task CreateNew, "create a new project from " & "n" & "imTemplate":
     
 
 task Clean, "clean the project":
+  if dirExists("nimcache"):
+    "nimcache".rmDir()
+  let lFileToRemove = "$1.$2"%[thisDir().getNameFromDir(), ExeExt]
+  if fileExists(lFileToRemove):
+    lFileToRemove.rmFile()
   if dirExists(buildDir):
-    rmdir buildDir
+    buildDir.rmDir()
   else:
     echo "Nothing to clean"
 
@@ -286,26 +255,24 @@ task Clean, "clean the project":
 task CompileTest_OSLinux_OSWindows, "":
   switchCommon()
   switch "path", getSourceDir()
-  switch "path", scriptNimDir
   switch "nimcache", buildCacheTestDir
-  let lFilePath = getEnv(lcTestAppFileNameEnvVarName)
-  switch "out", getTestBinaryFilePath(lFilePath)
+  let lFilePath = lcTestAppFileNameEnvVarName.getEnv()
+  switch "out", lFilePath.getTestBinaryFilePath()
   setCommand "compile", lFilePath
 
 
 task CompileAndRunTest_OSLinux_OSWindows, "":
   dependsOn CompileTest_OSLinux_OSWindows
-  exec gcApplicationToTestEnvVarName & "=\"" & getBuildBinaryFile() & "\" wine \"" & getTestBinaryFilePath(getEnv(lcTestAppFileNameEnvVarName)) & "\" 2>/dev/null" 
+  exec("$1=\"$2\" wine \"$3\" 2>/dev/null"%[gcApplicationToTestEnvVarName, getBuildBinaryFile(), lcTestAppFileNameEnvVarName.getEnv().getTestBinaryFilePath()])
 
 
 task CompileAndRunTest, "":
-  let lFilePath = getEnv(lcTestAppFileNameEnvVarName)
+  let lFilePath = lcTestAppFileNameEnvVarName.getEnv()
   switchCommon()
   switch "path", getSourceDir()
-  switch "path", scriptNimDir
   switch "nimcache", buildCacheTestDir
   switch "out", getTestBinaryFilePath(lFilePath)
-  switch "putenv", gcApplicationToTestEnvVarName & "=" & getBuildBinaryFile()
+  switch "putenv", "$1=\"$2\""%[gcApplicationToTestEnvVarName,getBuildBinaryFile()]
   switch "run"
   setCommand "compile", lFilePath
 
@@ -318,7 +285,7 @@ task Test, "test/s the project":
     of "linux":
       if (getTargetOS() == gcWindowsStr):
         lCommandToExec = "CompileAndRunTest_OSLinux_OSWindows"
-    selfExecWithDefaults("\"--putenv:" & lcTestAppFileNameEnvVarName & "=" & lFilePath & "\" " & lCommandToExec) 
+    selfExecWithDefaults("\"--putenv:$1=$2\" $3"%[lcTestAppFileNameEnvVarName, lFilePath, lCommandToExec]) 
 
 
 task CTest, "clean and test/s the project":
@@ -363,21 +330,19 @@ task CRun, "clean and run the project ex: nim --putenv:runParams=\"<Parameters>\
 
 
 task NInstall, "install project using nimble":
-  (scriptNimDir / "nimble.nimInc").writeFile(NimbleNimIncContent())
   exec("nimble -y install")
 
 
 task NInstallDeps, "install project dependencies using nimble":
-  (scriptNimDir / "nimble.nimInc").writeFile(NimbleNimIncContent())
   exec("nimble -y install -d")
 
 
 task NUninstall, "Uninstall project using nimble":
-  exec("nimble -y uninstall " & thisDir().getNameFromDir)
+  exec("nimble -y uninstall " & thisDir().getNameFromDir())
 
 
 task NCompile, "Compile using nimble":
-  (scriptNimDir / "nimble.nimInc").writeFile(NimbleNimIncContent())
+  dependson Clean
   exec("nimble -y c " & getSourceMainFile())
   
 
