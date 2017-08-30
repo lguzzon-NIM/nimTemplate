@@ -16,7 +16,7 @@ if [ -z ${NIM_VERBOSITY+x} ]; then
 fi
 sudo -E add-apt-repository -y ppa:ubuntu-toolchain-r/test
 ${aptGetCmd} update
-${aptGetInstallCmd} "gcc-${USE_GCC}" "g++-${USE_GCC}" git upx-ucl
+${aptGetInstallCmd} "gcc-${USE_GCC}" "g++-${USE_GCC}" git
 sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${USE_GCC} 10
 sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${USE_GCC} 10
 sudo update-alternatives --set gcc "/usr/bin/gcc-${USE_GCC}"
@@ -27,6 +27,20 @@ gcc --version
 #Install
 pushd .
 mkdir -p toCache
+readonly lDownloadPath=dl
+mkdir -p ${lDownloadPath}
+
+pushd ${lDownloadPath}
+
+#Install UPX
+readonly lUPXVersion=$(git ls-remote --tags "https://github.com/upx/upx.git" | awk '{print $2}' | grep -v '{}' | awk -F"/" '{print $3}' | tail -1 | sed "s/v//g")
+curl -z upx.txz -o upx.txz -L https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz
+tar -xvf upx.txz
+export PATH
+PATH="$(pwd)/upx-${lUPXVersion}-amd64_linux${PATH:+:$PATH}" || true
+
+popd
+
 readonly lNimAppPath=toCache/nim-${NIM_BRANCH}-${USE_GCC}
 if [ ! -x ${lNimAppPath}/bin/nim ]; then
 	git clone -b ${NIM_BRANCH} --depth 1 git://github.com/nim-lang/nim ${lNimAppPath}/
@@ -38,6 +52,7 @@ if [ ! -x ${lNimAppPath}/bin/nim ]; then
 	rm -rf csources
 	bin/nim c koch
 	./koch boot -d:release
+	./koch tools -d:release
 	popd
 else
 	pushd ${lNimAppPath}
@@ -45,6 +60,7 @@ else
 	if ! git merge FETCH_HEAD | grep "Already up-to-date"; then
 		bin/nim c koch
 		./koch boot -d:release
+		./koch tools -d:release
 	fi
 	popd
 fi
@@ -91,7 +107,5 @@ export PATH
 PATH="$(pwd)/${lNimAppPath}/bin${PATH:+:$PATH}" || true
 
 #Script
-echo "target OS  [${NIM_TARGET_OS}]"
-echo "target CPU [${NIM_TARGET_CPU}]"
-
-nim ctest release
+nim Settings
+nim CTest release

@@ -4,10 +4,10 @@ import os
 import osproc
 import strutils
 
-import consts
-import main
+import nimTemplate
+import nimTemplate.consts
 
 
-suite "main unit-test suite":
+suite "unit-test suite":
     test "getMessage":
         assert(cHelloWorld == getMessage())
