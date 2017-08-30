@@ -52,6 +52,7 @@ if [ ! -x ${lNimAppPath}/bin/nim ]; then
 	rm -rf csources
 	bin/nim c koch
 	./koch boot -d:release
+	./koch tools -d:release
 	popd
 else
 	pushd ${lNimAppPath}
@@ -59,6 +60,7 @@ else
 	if ! git merge FETCH_HEAD | grep "Already up-to-date"; then
 		bin/nim c koch
 		./koch boot -d:release
+		./koch tools -d:release
 	fi
 	popd
 fi

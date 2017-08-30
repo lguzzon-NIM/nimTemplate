@@ -3,6 +3,7 @@
 !\.travis.yml
 !/config.nims
 !/nimTemplate.nimble
+!/nimTemplate.nim
 !/LICENSE
 !/README.md
 !*\.md
