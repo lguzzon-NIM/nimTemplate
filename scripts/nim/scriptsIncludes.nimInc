@@ -345,6 +345,12 @@ task CRun, "clean and run the project ex: nim --putenv:runParams=\"<Parameters>\
   dependsOn Clean Run
 
 
+task UpdateScript, "update this script to latest releas in " & "n" & "imTemplate [uses svn on github]":
+  let lFromScript = "scripts/nim/scriptsIncludes.nimInc"
+  lFromScript.cpFile(lFromScript & "_OLD")  
+  exec("svn export --force \"$1/tags/$2/$3\" \"$3\""%[gcRepoURL, getLatestTagOfGitRepo(gcRepoURL), lFromScript])
+
+
 task NInstall, "install project using nimble":
   exec("nimble -y install")
 
