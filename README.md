@@ -1,3 +1,3 @@
-# nimTemplate [![Build Status](https://travis-ci.org/lguzzon/nimTemplate.svg?branch=master)](https://travis-ci.org/lguzzon/nimTemplate)
+# nimTemplate [![Build Status](https://travis-ci.org/lguzzon-NIM/nimTemplate.svg?branch=master)](https://travis-ci.org/lguzzon-NIM/nimTemplate)
 
 Nim template project
