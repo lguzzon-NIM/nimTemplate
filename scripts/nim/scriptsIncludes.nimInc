@@ -318,8 +318,9 @@ task BuildBinary, "":
 task Build, "build the project":
   if not fileExists(getBuildBinaryFile()):
     dependsOn BuildBinary
-    exec "strip " & getBuildBinaryFile()
-    exec "upx --best " & getBuildBinaryFile()
+    if splitCmdLine().params == "release":
+      exec "strip " & getBuildBinaryFile()
+      exec "upx --best " & getBuildBinaryFile()
 
 
 task CBuild, "clean and build the project":
@@ -327,11 +328,11 @@ task CBuild, "clean and build the project":
 
 
 task BuildToDeploy, "Build the project ready to deploy":
-  selfExecWithDefaults("--passC:-O4 --passL:-static Test")
+  selfExecWithDefaults("--passC:-O4 --passL:-static Test release")
 
 
 task CBuildToDeploy, "clean and build the project ready to deploy":
-  selfExecWithDefaults("--passC:-O4 --passL:-static CTest")
+  selfExecWithDefaults("--passC:-O4 --passL:-static CTest release")
 
 
 task Run, "run the project ex: nim --putenv:runParams=\"<Parameters>\" run":
@@ -345,7 +346,7 @@ task CRun, "clean and run the project ex: nim --putenv:runParams=\"<Parameters>\
   dependsOn Clean Run
 
 
-task UpdateScript, "update this script to latest releas in " & "n" & "imTemplate [uses svn on github]":
+task UpdateScript, "update this script to latest release in " & "n" & "imTemplate [uses svn on github]":
   let lFromScript = "scripts/nim/scriptsIncludes.nimInc"
   lFromScript.cpFile(lFromScript & "_OLD")
   exec("svn export --force \"$1/tags/$2/$3\" \"$3\""%[gcRepoURL, getLatestTagOfGitRepo(gcRepoURL), lFromScript])
