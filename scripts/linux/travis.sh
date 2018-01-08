@@ -36,7 +36,7 @@ pushd ${lDownloadPath}
 
 #Install UPX
 readonly lUPXVersion=$(git ls-remote --tags "https://github.com/upx/upx.git" | awk '{print $2}' | grep -v '{}' | awk -F"/" '{print $3}' | tail -1 | sed "s/v//g")
-curl -z upx.txz -o upx.txz -L https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz
+curl -z upx.txz -o upx.txz -L "https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz"
 tar -xvf upx.txz
 export PATH
 PATH="$(pwd)/upx-${lUPXVersion}-amd64_linux${PATH:+:$PATH}" || true
