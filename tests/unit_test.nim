@@ -2,7 +2,7 @@
 import unittest
 
 import nimTemplate
-import nimTemplate.consts
+import nimTemplate/consts
 
 
 suite "unit-test suite":

@@ -9,7 +9,7 @@ else:
   import strutils
 
   import nimTemplate
-  import nimTemplate.consts
+  import nimTemplate/consts
 
   include "../scripts/nim/scriptsEnvVarNames.nimInc"
 
