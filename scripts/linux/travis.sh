@@ -16,9 +16,23 @@ fi
 if [ -z ${NIM_VERBOSITY+x} ]; then
 	export NIM_VERBOSITY=0
 fi
-sudo -E add-apt-repository -y ppa:ubuntu-toolchain-r/test
-${aptGetCmd} update
-${aptGetInstallCmd} "gcc-${USE_GCC}" "g++-${USE_GCC}" git
+
+installIfNotPresent() {
+	local -r lPackageName="$1"
+	local -r lPreCommandToRun="${2:-true}"
+	local -r lPostCommandToRun="${3:-true}"
+	if [ $(dpkg-query -W -f='${Status}' "${lPackageName}" 2>/dev/null | grep -c "ok installed") -eq 0 ];
+	then
+		${lPreCommandToRune} \
+		&& ${aptGetInstallCmd} ${lPackageName} \
+		&& ${lPostCommandToRun}
+	fi
+}
+
+installIfNotPresent "gcc-${USE_GCC}" "sudo -E add-apt-repository -y ppa:ubuntu-toolchain-r/test; ${aptGetCmd} update"
+installIfNotPresent "g++-${USE_GCC}"
+installIfNotPresent "git"
+
 sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${USE_GCC} 10
 sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${USE_GCC} 10
 sudo update-alternatives --set gcc "/usr/bin/gcc-${USE_GCC}"
@@ -63,7 +77,7 @@ if [ ! -x ${lNimAppPath}/bin/nim ]; then
 else
 	pushd ${lNimAppPath}
 	git fetch origin
-	if ! git merge FETCH_HEAD | grep "Already up-to-date"; then
+	if ! git merge FETCH_HEAD | grep "Already up to date"; then
 		compile
 	fi
 	popd
@@ -73,7 +87,8 @@ rm -f nim.cfg
 if [ "${NIM_TARGET_OS}" = "windows" ]; then
 	echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
 	rm -rdf ~/.wine
-	${aptGetInstallCmd} mingw-w64 wine
+	installIfNotPresent mingw-w64
+	installIfNotPresent wine
 	if [ "${NIM_TARGET_CPU}" = "i386" ]; then
 		echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
 		export WINEARCH=win32
@@ -101,7 +116,10 @@ else
 		echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
 		if [ "${NIM_TARGET_CPU}" = "i386" ]; then
 			echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
-			${aptGetInstallCmd} gcc-${USE_GCC}-multilib g++-${USE_GCC}-multilib gcc-multilib g++-multilib
+			installIfNotPresent gcc-${USE_GCC}-multilib 
+			installIfNotPresent g++-${USE_GCC}-multilib
+			installIfNotPresent gcc-multilib
+			installIfNotPresent g++-multilib
 		fi
 	fi
 fi
