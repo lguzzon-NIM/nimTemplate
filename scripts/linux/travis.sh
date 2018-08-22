@@ -112,7 +112,7 @@ if [ ! -x ${lNimAppPath}/bin/nim ]; then
 else
 	pushd ${lNimAppPath}
 	git fetch origin
-	if [[ $(git merge FETCH_HEAD | grep -c "Already up to date") -eq 1 ]]; then
+	if [[ $(git merge FETCH_HEAD | grep -c "Already up[ -]to[ -]date") -eq 0 ]]; then
 		compile
 	fi
 	popd
