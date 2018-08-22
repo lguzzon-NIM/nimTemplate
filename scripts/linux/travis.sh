@@ -21,7 +21,8 @@ installRepositoryIfNotPresent() {
 	local -r lPPAName="$1"
 	local lResult=1
 	export lResult
-	for APT in $(find /etc/apt/ -name \*.list); do
+	while IFS= read -r -d '' APT
+	do
     	while read -r ENTRY ; do
     		echo "${ENTRY}" | grep "${lPPAName}"
     		lResult=$?
@@ -33,7 +34,7 @@ installRepositoryIfNotPresent() {
 		if [[ "${lResult}" -eq 0 ]]; then
 			break
 		fi
-	done
+	done < <(find /etc/apt/ -name \*.list -print0)
 	if [[ "${lResult}" -eq 1 ]]; then
 		eval "sudo -E add-apt-repository -y ppa:${lPPAName}" && 
 			eval "${aptGetCmd} update"
@@ -80,8 +81,10 @@ pushd ${lDownloadPath}
 
 #Install UPX
 readonly lUPXVersion=$(git ls-remote --tags "https://github.com/upx/upx.git" | awk '{print $2}' | grep -v '{}' | awk -F"/" '{print $3}' | tail -1 | sed "s/v//g")
-curl -z upx.txz -o upx.txz -L "https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz"
-tar -xvf upx.txz
+if [ ! -d "$(pwd)/upx-${lUPXVersion}-amd64_linux" ]; then
+	curl -z upx.txz -o upx.txz -L "https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz"
+	tar -xvf upx.txz
+fi
 export PATH
 # shellcheck disable=2123
 PATH="$(pwd)/upx-${lUPXVersion}-amd64_linux${PATH:+:$PATH}" || true
@@ -108,7 +111,7 @@ if [ ! -x ${lNimAppPath}/bin/nim ]; then
 else
 	pushd ${lNimAppPath}
 	git fetch origin
-	if [ $(git merge FETCH_HEAD | grep -c "Already up to date") -eq 1 ]; then
+	if [[ $(git merge FETCH_HEAD | grep -c "Already up to date") -eq 1 ]]; then
 		compile
 	fi
 	popd
