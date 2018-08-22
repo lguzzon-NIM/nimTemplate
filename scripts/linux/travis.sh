@@ -21,14 +21,14 @@ installRepositoryIfNotPresent() {
 	local -r lPPAName="$1"
 	local lResult=1
 	export lResult
-	for APT in `find /etc/apt/ -name \*.list`; do
-    	while read ENTRY ; do
+	for APT in $(find /etc/apt/ -name \*.list); do
+    	while read -r ENTRY ; do
     		echo "${ENTRY}" | grep "${lPPAName}"
     		lResult=$?
 			if [[ "${lResult}" -eq 0 ]]; then
 				break
 			fi
-    	done < <( grep -o "^deb http://ppa.launchpad.net/[a-z0-9\-]\+/[a-z0-9\-]\+" ${APT} )
+    	done < <( grep -o "^deb http://ppa.launchpad.net/[a-z0-9\-]\+/[a-z0-9\-]\+" "${APT}" )
     	# https://superuser.com/questions/688882/how-to-test-if-a-variable-is-equal-to-a-number-in-shell
 		if [[ "${lResult}" -eq 0 ]]; then
 			break
