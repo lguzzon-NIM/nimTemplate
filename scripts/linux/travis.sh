@@ -23,7 +23,7 @@ installIfNotPresent() {
 	local -r lPostCommandToRun="${3:-true}"
 	if [ $(dpkg-query -W -f='${Status}' "${lPackageName}" 2>/dev/null | grep -c "ok installed") -eq 0 ];
 	then
-		${lPreCommandToRune} \
+		${lPreCommandToRun} \
 		&& ${aptGetInstallCmd} ${lPackageName} \
 		&& ${lPostCommandToRun}
 	fi
