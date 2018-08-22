@@ -68,7 +68,7 @@ proc getBinaryFileName (): string =
 
 
 proc getBuildBinaryFile (): string =
-   gcBuildTargetDir  / getBinaryFileName()
+   gcBuildTargetDir / getBinaryFileName()
 
 
 proc splitCmdLine(): tuple[options, command, params: string] =
