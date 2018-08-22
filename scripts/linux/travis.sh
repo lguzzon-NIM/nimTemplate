@@ -100,7 +100,7 @@ compile() {
 
 readonly lNimAppPath="${lCachedDir}/nim-${NIM_BRANCH}-${USE_GCC}"
 if [ ! -x ${lNimAppPath}/bin/nim ]; then
-	git clone -b ${NIM_BRANCH} --depth 1 git://github.com/nim-lang/nim ${lNimAppPath}/
+	git clone --single-branch -b ${NIM_BRANCH} --depth 1 git://github.com/nim-lang/nim ${lNimAppPath}/
 	pushd ${lNimAppPath}
 	git clone --depth 1 git://github.com/nim-lang/csources csources/
 	pushd csources
