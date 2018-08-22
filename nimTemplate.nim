@@ -1,5 +1,5 @@
 
-import nimTemplate.consts
+import nimTemplate/consts
 
 
 proc getMessage*: string =
