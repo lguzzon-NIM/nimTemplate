@@ -64,7 +64,10 @@ sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${USE_GCC} 10
 sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${USE_GCC} 10
 sudo update-alternatives --set gcc "/usr/bin/gcc-${USE_GCC}"
 sudo update-alternatives --set g++ "/usr/bin/g++-${USE_GCC}"
+
+${aptGetCmd} clean 
 ${aptGetCmd} autoremove
+
 gcc --version
 
 #Install
