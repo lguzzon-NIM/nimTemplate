@@ -21,12 +21,14 @@ installIfNotPresent() {
 	local -r lPackageName="$1"
 	local -r lPreCommandToRun="${2:-true}"
 	local -r lPostCommandToRun="${3:-true}"
-	if [ $(dpkg-query -W -f='${Status}' "${lPackageName}" 2>/dev/null | grep -c "ok installed") -eq 0 ];
-	then
-		${lPreCommandToRun} \
-		&& ${aptGetInstallCmd} ${lPackageName} \
-		&& ${lPostCommandToRun}
+	lResult=0
+	if [ "$(dpkg-query -W -f='${Status}' "${lPackageName}" 2>/dev/null | grep -c "ok installed")" -eq 0 ]; then
+		eval "${lPreCommandToRun}" &&
+			"${aptGetInstallCmd}" "${lPackageName}" &&
+			eval "${lPostCommandToRun}"
+		lResult=$?
 	fi
+	return ${lResult}
 }
 
 installIfNotPresent "gcc-${USE_GCC}" "sudo -E add-apt-repository -y ppa:ubuntu-toolchain-r/test; ${aptGetCmd} update"
@@ -53,6 +55,7 @@ readonly lUPXVersion=$(git ls-remote --tags "https://github.com/upx/upx.git" | a
 curl -z upx.txz -o upx.txz -L "https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz"
 tar -xvf upx.txz
 export PATH
+# shellcheck disable=2123
 PATH="$(pwd)/upx-${lUPXVersion}-amd64_linux${PATH:+:$PATH}" || true
 
 popd
@@ -116,7 +119,7 @@ else
 		echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
 		if [ "${NIM_TARGET_CPU}" = "i386" ]; then
 			echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
-			installIfNotPresent gcc-${USE_GCC}-multilib 
+			installIfNotPresent gcc-${USE_GCC}-multilib
 			installIfNotPresent g++-${USE_GCC}-multilib
 			installIfNotPresent gcc-multilib
 			installIfNotPresent g++-multilib
