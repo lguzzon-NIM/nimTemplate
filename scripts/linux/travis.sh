@@ -73,8 +73,9 @@ gcc --version
 
 #Install
 pushd .
-mkdir -p toCache
-readonly lDownloadPath=dl
+readonly lCachedDir="toCache"
+mkdir -p "${lCachedDir}"
+readonly lDownloadPath="${lCachedDir}/dl"
 mkdir -p ${lDownloadPath}
 
 pushd ${lDownloadPath}
@@ -97,7 +98,7 @@ compile() {
 	./koch tools -d:release
 }
 
-readonly lNimAppPath=toCache/nim-${NIM_BRANCH}-${USE_GCC}
+readonly lNimAppPath="${lCachedDir}/nim-${NIM_BRANCH}-${USE_GCC}"
 if [ ! -x ${lNimAppPath}/bin/nim ]; then
 	git clone -b ${NIM_BRANCH} --depth 1 git://github.com/nim-lang/nim ${lNimAppPath}/
 	pushd ${lNimAppPath}
@@ -123,7 +124,7 @@ if [ "${NIM_TARGET_OS}" = "windows" ]; then
 	rm -rdf ~/.wine
 	installIfNotPresent mingw-w64
 	installIfNotPresent wine
-	if [ "${NIM_TARGET_CPU}" = "i386" ]; then
+	if [[ "${NIM_TARGET_CPU}" = "i386" ]]; then
 		echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
 		export WINEARCH=win32
 		{
@@ -135,7 +136,7 @@ if [ "${NIM_TARGET_OS}" = "windows" ]; then
 	else
 		echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
 		export WINEARCH=win64
-		if [ "${NIM_TARGET_CPU}" = "amd64" ]; then
+		if [[ "${NIM_TARGET_CPU}" = "amd64" ]]; then
 			{
 				echo amd64.windows.gcc.path = \"/usr/bin\"
 				echo amd64.windows.gcc.exe = \"x86_64-w64-mingw32-gcc\"
@@ -146,9 +147,9 @@ if [ "${NIM_TARGET_OS}" = "windows" ]; then
 	fi
 	wine hostname
 else
-	if [ "${NIM_TARGET_OS}" = "linux" ]; then
+	if [[ "${NIM_TARGET_OS}" = "linux" ]]; then
 		echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
-		if [ "${NIM_TARGET_CPU}" = "i386" ]; then
+		if [[ "${NIM_TARGET_CPU}" = "i386" ]]; then
 			echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
 			installIfNotPresent gcc-${USE_GCC}-multilib
 			installIfNotPresent g++-${USE_GCC}-multilib
