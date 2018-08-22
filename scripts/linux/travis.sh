@@ -17,21 +17,46 @@ if [ -z ${NIM_VERBOSITY+x} ]; then
 	export NIM_VERBOSITY=0
 fi
 
+installRepositoryIfNotPresent() {
+	local -r lPPAName="$1"
+	local lResult=1
+	export lResult
+	for APT in `find /etc/apt/ -name \*.list`; do
+    	while read ENTRY ; do
+    		echo "${ENTRY}" | grep "${lPPAName}"
+    		lResult=$?
+			if [[ "${lResult}" -eq 0 ]]; then
+				break
+			fi
+    	done < <( grep -o "^deb http://ppa.launchpad.net/[a-z0-9\-]\+/[a-z0-9\-]\+" ${APT} )
+    	# https://superuser.com/questions/688882/how-to-test-if-a-variable-is-equal-to-a-number-in-shell
+		if [[ "${lResult}" -eq 0 ]]; then
+			break
+		fi
+	done
+	if [[ "${lResult}" -eq 1 ]]; then
+		eval "sudo -E add-apt-repository -y ppa:${lPPAName}" && 
+			eval "${aptGetCmd} update"
+		lResult=$?
+	fi
+	return ${lResult}
+}
+
 installIfNotPresent() {
 	local -r lPackageName="$1"
 	local -r lPreCommandToRun="${2:-true}"
 	local -r lPostCommandToRun="${3:-true}"
-	lResult=0
-	if [ "$(dpkg-query -W -f='${Status}' "${lPackageName}" 2>/dev/null | grep -c "ok installed")" -eq 0 ]; then
+	local lResult=0
+	if [[ $(dpkg-query -W -f='${Status}' "${lPackageName}" 2>/dev/null | grep -c "ok installed") -eq 0 ]]; then
 		eval "${lPreCommandToRun}" &&
-			"${aptGetInstallCmd}" "${lPackageName}" &&
+			eval "${aptGetInstallCmd} ${lPackageName}" &&
 			eval "${lPostCommandToRun}"
 		lResult=$?
 	fi
 	return ${lResult}
 }
 
-installIfNotPresent "gcc-${USE_GCC}" "sudo -E add-apt-repository -y ppa:ubuntu-toolchain-r/test; ${aptGetCmd} update"
+installIfNotPresent "gcc-${USE_GCC}" "installRepositoryIfNotPresent ubuntu-toolchain-r/test"
 installIfNotPresent "g++-${USE_GCC}"
 installIfNotPresent "git"
 
@@ -80,7 +105,7 @@ if [ ! -x ${lNimAppPath}/bin/nim ]; then
 else
 	pushd ${lNimAppPath}
 	git fetch origin
-	if ! git merge FETCH_HEAD | grep "Already up to date"; then
+	if [ $(git merge FETCH_HEAD | grep -c "Already up to date") -eq 1 ]; then
 		compile
 	fi
 	popd
