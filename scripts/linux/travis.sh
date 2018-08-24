@@ -125,9 +125,9 @@ popd
 rm -f nim.cfg
 if [ "${NIM_TARGET_OS}" = "windows" ]; then
 	echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
-	WINEPREFIX=~/.winelaz
+	WINEPREFIX=~/.wineNIM
 	export WINEPREFIX
-	sudo dpkg --add-architecture i386 && "${aptGetCmd} update"
+	(sudo -E dpkg --add-architecture i386) && "${aptGetCmd}" update
 	
 	installIfNotPresent xvfb
 	Xvfb "${DISPLAY}" &
