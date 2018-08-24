@@ -125,8 +125,9 @@ popd
 rm -f nim.cfg
 if [ "${NIM_TARGET_OS}" = "windows" ]; then
 	echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
-	rm -rdf ~/.wine
-	dpkg --add-architecture i386 && "${aptGetCmd} update"
+	WINEPREFIX=~/.winelaz
+	export WINEPREFIX
+	sudo dpkg --add-architecture i386 && "${aptGetCmd} update"
 	
 	installIfNotPresent xvfb
 	Xvfb "${DISPLAY}" &
@@ -154,7 +155,8 @@ if [ "${NIM_TARGET_OS}" = "windows" ]; then
 			} >nim.cfg
 		fi
 	fi
-	wine hostname
+	wineboot -i
+	winetricks -q corefonts
 else
 	if [[ "${NIM_TARGET_OS}" = "linux" ]]; then
 		echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
