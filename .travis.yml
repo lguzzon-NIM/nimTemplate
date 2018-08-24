@@ -10,6 +10,7 @@ branches:
   - master
   - develop
   - /^release\/.*$/
+  - /^hotfix\/.*$/
 
 env:
   global:
