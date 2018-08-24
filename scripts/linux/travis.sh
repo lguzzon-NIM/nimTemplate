@@ -126,13 +126,9 @@ popd
 rm -f nim.cfg
 if [ "${NIM_TARGET_OS}" = "windows" ]; then
 	echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
-	WINEPREFIX=~/.wineNIM
-	export WINEPREFIX
+	export WINEPREFIX=~/.wineNIM
 	${sudoCmd} dpkg --add-architecture i386
 	${aptGetCmd} update
-	
-	installIfNotPresent xvfb
-	Xvfb "${DISPLAY}" &
 
 	installIfNotPresent mingw-w64
 	installIfNotPresent wine
