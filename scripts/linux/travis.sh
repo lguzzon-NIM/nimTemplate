@@ -26,22 +26,21 @@ installRepositoryIfNotPresent() {
 	local -r lPPAName="$1"
 	local lResult=1
 	export lResult
-	while IFS= read -r -d '' APT
-	do
-    	while read -r ENTRY ; do
-    		echo "${ENTRY}" | grep "${lPPAName}"
-    		lResult=$?
+	while IFS= read -r -d '' APT; do
+		while read -r ENTRY; do
+			echo "${ENTRY}" | grep "${lPPAName}"
+			lResult=$?
 			if [[ "${lResult}" -eq 0 ]]; then
 				break
 			fi
-    	done < <( grep -o '^deb http://ppa.launchpad.net/[a-z0-9\-]\+/[a-z0-9\-]\+' "${APT}" )
-    	# https://superuser.com/questions/688882/how-to-test-if-a-variable-is-equal-to-a-number-in-shell
+		done < <(grep -o '^deb http://ppa.launchpad.net/[a-z0-9\-]\+/[a-z0-9\-]\+' "${APT}")
+		# https://superuser.com/questions/688882/how-to-test-if-a-variable-is-equal-to-a-number-in-shell
 		if [[ "${lResult}" -eq 0 ]]; then
 			break
 		fi
 	done < <(find /etc/apt/ -name \*.list -print0)
 	if [[ "${lResult}" -eq 1 ]]; then
-		eval "sudo -E add-apt-repository -y ppa:${lPPAName}" && 
+		eval "sudo -E add-apt-repository -y ppa:${lPPAName}" &&
 			eval "${aptGetCmd} update"
 		lResult=$?
 	fi
@@ -62,6 +61,14 @@ installIfNotPresent() {
 	return ${lResult}
 }
 
+patchUdev() {
+	# shellcheck disable=1004,2143
+	[ ! "$(grep -A1 '### END INIT INFO' /etc/init.d/udev | grep 'dpkg --configure -a || exit 0')" ] &&
+		sudo sed -i 's/### END INIT INFO/### END INIT INFO\
+dpkg --configure -a || exit 0/' /etc/init.d/udev
+}
+
+patchUdev
 installIfNotPresent "gcc-${USE_GCC}" "installRepositoryIfNotPresent ubuntu-toolchain-r/test"
 installIfNotPresent "g++-${USE_GCC}"
 installIfNotPresent "git"
@@ -71,7 +78,7 @@ sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${USE_GCC} 10
 sudo update-alternatives --set gcc "/usr/bin/gcc-${USE_GCC}"
 sudo update-alternatives --set g++ "/usr/bin/g++-${USE_GCC}"
 
-${aptGetCmd} clean 
+${aptGetCmd} clean
 ${aptGetCmd} autoremove
 
 gcc --version
@@ -124,7 +131,7 @@ else
 fi
 popd
 rm -f nim.cfg
-if [ "${NIM_TARGET_OS}" = "windows" ]; then
+if [[ "${NIM_TARGET_OS}" == "windows" ]]; then
 	echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
 	export WINEPREFIX=~/.wineNIM
 	${sudoCmd} dpkg --add-architecture i386
@@ -132,7 +139,7 @@ if [ "${NIM_TARGET_OS}" = "windows" ]; then
 
 	installIfNotPresent mingw-w64
 	installIfNotPresent wine
-	if [[ "${NIM_TARGET_CPU}" = "i386" ]]; then
+	if [[ "${NIM_TARGET_CPU}" == "i386" ]]; then
 		echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
 		export WINEARCH=win32
 		{
@@ -144,7 +151,7 @@ if [ "${NIM_TARGET_OS}" = "windows" ]; then
 	else
 		echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
 		export WINEARCH=win64
-		if [[ "${NIM_TARGET_CPU}" = "amd64" ]]; then
+		if [[ "${NIM_TARGET_CPU}" == "amd64" ]]; then
 			{
 				echo amd64.windows.gcc.path = \"/usr/bin\"
 				echo amd64.windows.gcc.exe = \"x86_64-w64-mingw32-gcc\"
@@ -155,9 +162,9 @@ if [ "${NIM_TARGET_OS}" = "windows" ]; then
 	fi
 	wine hostname
 else
-	if [[ "${NIM_TARGET_OS}" = "linux" ]]; then
+	if [[ "${NIM_TARGET_OS}" == "linux" ]]; then
 		echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
-		if [[ "${NIM_TARGET_CPU}" = "i386" ]]; then
+		if [[ "${NIM_TARGET_CPU}" == "i386" ]]; then
 			echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
 			installIfNotPresent gcc-${USE_GCC}-multilib
 			installIfNotPresent g++-${USE_GCC}-multilib
