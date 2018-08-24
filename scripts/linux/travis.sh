@@ -157,8 +157,7 @@ if [ "${NIM_TARGET_OS}" = "windows" ]; then
 			} >nim.cfg
 		fi
 	fi
-	wineboot -i
-	winetricks -q corefonts
+	wine hostname
 else
 	if [[ "${NIM_TARGET_OS}" = "linux" ]]; then
 		echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
