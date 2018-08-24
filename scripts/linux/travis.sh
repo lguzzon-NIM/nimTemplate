@@ -8,13 +8,17 @@ readonly aptGetInstallCmd="${aptGetCmd} --no-install-suggests --no-install-recom
 
 #Before Install
 if [ -z ${NIM_BRANCH+x} ]; then
-	export NIM_BRANCH=master
+	export NIM_BRANCH="master"
 fi
 if [ -z ${USE_GCC+x} ]; then
-	export USE_GCC=4.8
+	export USE_GCC="4.8"
 fi
 if [ -z ${NIM_VERBOSITY+x} ]; then
 	export NIM_VERBOSITY=0
+fi
+
+if [ -z ${DISPLAY+x} ]; then
+	export DISPLAY=":99.0"
 fi
 
 installRepositoryIfNotPresent() {
@@ -29,7 +33,7 @@ installRepositoryIfNotPresent() {
 			if [[ "${lResult}" -eq 0 ]]; then
 				break
 			fi
-    	done < <( grep -o "^deb http://ppa.launchpad.net/[a-z0-9\-]\+/[a-z0-9\-]\+" "${APT}" )
+    	done < <( grep -o '^deb http://ppa.launchpad.net/[a-z0-9\-]\+/[a-z0-9\-]\+' "${APT}" )
     	# https://superuser.com/questions/688882/how-to-test-if-a-variable-is-equal-to-a-number-in-shell
 		if [[ "${lResult}" -eq 0 ]]; then
 			break
@@ -100,7 +104,7 @@ compile() {
 
 readonly lNimAppPath="${lCachedDir}/nim-${NIM_BRANCH}-${USE_GCC}"
 if [ ! -x ${lNimAppPath}/bin/nim ]; then
-	git clone --single-branch -b ${NIM_BRANCH} --depth 1 git://github.com/nim-lang/nim ${lNimAppPath}/
+	git clone --single-branch -b ${NIM_BRANCH} git://github.com/nim-lang/nim ${lNimAppPath}/
 	pushd ${lNimAppPath}
 	git clone --depth 1 git://github.com/nim-lang/csources csources/
 	pushd csources
@@ -122,6 +126,11 @@ rm -f nim.cfg
 if [ "${NIM_TARGET_OS}" = "windows" ]; then
 	echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
 	rm -rdf ~/.wine
+	dpkg --add-architecture i386 && "${aptGetCmd} update"
+	
+	installIfNotPresent xvfb
+	Xvfb "${DISPLAY}" &
+
 	installIfNotPresent mingw-w64
 	installIfNotPresent wine
 	if [[ "${NIM_TARGET_CPU}" = "i386" ]]; then
