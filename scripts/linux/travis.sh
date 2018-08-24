@@ -3,7 +3,8 @@ set -e
 set -o pipefail
 set -o xtrace
 
-readonly aptGetCmd="sudo -E apt-get -y -qq"
+readonly sudoCmd="sudo -E"
+readonly aptGetCmd="${sudoCmd} apt-get -y -qq"
 readonly aptGetInstallCmd="${aptGetCmd} --no-install-suggests --no-install-recommends install"
 
 #Before Install
@@ -127,7 +128,8 @@ if [ "${NIM_TARGET_OS}" = "windows" ]; then
 	echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
 	WINEPREFIX=~/.wineNIM
 	export WINEPREFIX
-	(sudo -E dpkg --add-architecture i386) && "${aptGetCmd}" update
+	${sudoCmd} dpkg --add-architecture i386
+	${aptGetCmd} update
 	
 	installIfNotPresent xvfb
 	Xvfb "${DISPLAY}" &
