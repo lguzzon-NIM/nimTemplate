@@ -184,9 +184,9 @@ proc getLatestTagOfGitRepo(aRepoUrl: string): string =
         var lNumberStr = ""
         for lIndex in 0..5:
           if lIndex < lNumbers.len:
-            lNumberStr &= lNumbers[lIndex].align(8,'0')
+            lNumberStr &= lNumbers[lIndex].align(8, '0')
           else:
-            lNumberStr &= "".align(8,'0')
+            lNumberStr &= "".align(8, '0')
         if lNumberStr > lMaxTagStr:
           lMaxTagStr = lNumberStr
           result = lTag[1]
@@ -242,12 +242,12 @@ task CreateNew, "create a new project from " & "n" & "imTemplate":
     for lDirPath in Dirs(aProjectDir):
       for lFilePath in listFiles(lDirPath):
         let lOldString = lFilePath.splitFile
-        let lNewString = lOldString.name.replace(lString,aNewProjectName)
+        let lNewString = lOldString.name.replace(lString, aNewProjectName)
         if lNewString != lOldString.name:
           lFSItemsToMove.add((lFilePath, lOldString.dir / lNewString & lOldString.ext))
     for lDirPath in Dirs(aProjectDir):
       let lOldString = lDirPath.splitFile
-      let lNewString = lOldString.name.replace(lString,aNewProjectName)
+      let lNewString = lOldString.name.replace(lString, aNewProjectName)
       if lNewString != lOldString.name:
         lFSItemsToMove.add((lDirPath, lOldString.dir / lNewString & lOldString.ext))
     for lToMove in lFSItemsToMove:
@@ -255,7 +255,7 @@ task CreateNew, "create a new project from " & "n" & "imTemplate":
     for lDirPath in Dirs(aProjectDir):
       for lFilePath in listFiles(lDirPath):
         let lOldString = lFilePath.readFile
-        let lNewString = lOldString.replace(lString,aNewProjectName)
+        let lNewString = lOldString.replace(lString, aNewProjectName)
         if lNewString != lOldString:
           lFilePath.writeFile(lNewString)
 
@@ -273,7 +273,7 @@ task CreateNew, "create a new project from " & "n" & "imTemplate":
   echo "Cloning [$1] tag [$3] to [$2]"%[gcRepoURL, lNewProjectDir, lTag]
   discard gorgeEx("git clone -b \"$3\" --single-branch $1 $2"%[gcRepoURL, lNewProjectDir, lTag])
   echo "Resetting files and dirs ..."
-  resetProjectDir(lNewProjectDir,lNewProjectName)
+  resetProjectDir(lNewProjectDir, lNewProjectName)
   echo "... done"
 
 
@@ -309,7 +309,7 @@ task CompileAndRunTest, "":
   switch "path", getSourceDir()
   switch "nimcache", gcBuildCacheTestDir
   switch "out", getTestBinaryFilePath(lFilePath)
-  switch "putenv", "$1=\"$2\""%[gcApplicationToTestEnvVarName,getBuildBinaryFile()]
+  switch "putenv", "$1=\"$2\""%[gcApplicationToTestEnvVarName, getBuildBinaryFile()]
   switch "run"
   setCompile(lFilePath)
 
@@ -395,7 +395,7 @@ task NCompile, "compile using nimble":
 
 task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
   const
-    lEnvs = @[@[gcTargetOSEnvVarName,gcLinuxStr,gcWindowsStr],@[gcTargetCpuEnvVarName,gcAmd64,"i386"],@[gcGCCVersionToUseEnvVarName,"4.8","5","6","7","8"],@[gcNimBranchToUseEnvVarName,"master","devel"]]
+    lEnvs = @[@[gcTargetOSEnvVarName, gcLinuxStr, gcWindowsStr], @[gcTargetCpuEnvVarName, gcAmd64, "i386"], @[gcGCCVersionToUseEnvVarName, "4.8", "5", "6", "7", "8"], @[gcNimBranchToUseEnvVarName, "master", "devel"]]
     lEnvsLow = lEnvs.low
     lEnvsHigh = lEnvs.high
   var
@@ -409,6 +409,6 @@ task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
     else:
       lResult &= "- " & aResult & "\n"
 
-  lGetEnvValue("",lEnvsLow)
+  lGetEnvValue("", lEnvsLow)
   echo lResult
 
