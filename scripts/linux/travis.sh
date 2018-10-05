@@ -70,7 +70,8 @@ dpkg --configure -a || exit 0/' /etc/init.d/udev
 }
 
 patchUdev
-installIfNotPresent "gcc-${USE_GCC}" "installRepositoryIfNotPresent ubuntu-toolchain-r/test"
+installRepositoryIfNotPresent "ubuntu-toolchain-r/test"
+installIfNotPresent "gcc-${USE_GCC}"
 installIfNotPresent "g++-${USE_GCC}"
 installIfNotPresent "git"
 
