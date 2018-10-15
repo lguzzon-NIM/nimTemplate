@@ -133,6 +133,12 @@ proc switchCommon () =
   let lNimVerbosity = getNimVerbosity()
   if splitCmdLine().params == "release":
     switch "define", "release"
+    switch "stackTrace", "off"
+    switch "lineTrace", "off"
+    switch "assertions", "off"
+    switch "checks", "off"
+  else:
+    switch "embedsrc"
   switch "verbosity", lNimVerbosity
   switch "out", getBuildBinaryFile()
   switch "nimcache", gcBuildCacheDir
@@ -362,7 +368,11 @@ task CBuildToDeploy, "clean and build the project ready to deploy":
 task Run, "run the project ex: nim --putenv:runParams=\"<Parameters>\" run":
   dependsOn Build
   let params = if existsEnv("runParams"): " " & getEnv("runParams") else: ""
-  let command = (getBuildBinaryFile() & params).strip()
+  let command = ((if ("js" == getTargetCPU()): 
+    "node "
+  else:
+    "") & 
+    (getBuildBinaryFile() & params)).strip()
   command.exec()
 
 
