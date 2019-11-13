@@ -8,7 +8,7 @@ else:
   import osproc
   import strutils
 
-  import nimTemplate
+  # import nimTemplate
   import nimTemplate/consts
 
   include "../scripts/nim/scriptsEnvVarNames.nimInc"
