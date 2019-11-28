@@ -35,6 +35,10 @@ if [ -z ${NIM_VERBOSITY+x} ]; then
   export NIM_VERBOSITY=0
 fi
 
+if [ -z ${NIM_BRANCH+x} ]; then
+  export NIM_BRANCH=version
+fi
+
 if [ -z ${DISPLAY+x} ]; then
   export DISPLAY=":99.0"
 fi
@@ -107,7 +111,12 @@ gcc --version
 #Install
 
 #Install UPX
-readonly lUPXVersion=$(git ls-remote --tags "https://github.com/upx/upx.git" | awk '{print $2}' | grep -v '{}' | awk -F"/" '{print $3}' | tail -1 | sed "s/v//g")
+readonly lUPXVersion=$(git ls-remote --tags "https://github.com/upx/upx.git" \
+| awk '{print $2}' \
+| grep -v '{}' \
+| awk -F"/" '{print $3}' \
+| tail -1 \
+| sed "s/v//g")
 curl -z upx.txz -o upx.txz -L "https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz"
 tar -xvf upx.txz
 export PATH
@@ -121,7 +130,7 @@ if uname -a | grep -q "_64"; then
 fi
 
 # lNimBranch=devel
-lNimBranch=version
+# lNimBranch=version
 
 readonly lNimURL=$(
   git ls-remote --tags "https://github.com/nim-lang/nightlies.git" \
@@ -129,7 +138,7 @@ readonly lNimURL=$(
     | grep -v '{}' \
     | awk -F"/" '{print $3}' \
     | grep "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]" \
-    | grep "$lNimBranch" \
+    | grep "$NIM_BRANCH" \
     | tail -20 \
     | tac \
     | while IFS= read -r line; do
