@@ -5,5 +5,5 @@ import nimTemplate/consts
 proc getMessage*: string =
     result = cHelloWorld
 
-when isMainModule: 
+when isMainModule:
     echo getMessage()
