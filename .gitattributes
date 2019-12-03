@@ -5,6 +5,7 @@
 LICENSE text eol=lf
 .editorconfig text eol=lf
 .travis.yml text eol=lf
+
 **/.gitattributes text eol=lf
 **/.gitignore text eol=lf
 **/*.csv text eol=lf
