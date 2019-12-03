@@ -1,8 +1,9 @@
 *
+!**\.gitattributes
+!**\.gitignore
 !**\.md
+
 !/\.editorconfig
-!/\.gitattributes
-!/\.gitignore
 !/\.travis\.yml
 !/config\.nims
 !/LICENSE
