@@ -245,7 +245,7 @@ task Tasks, "list all tasks":
   selfExecWithDefaults("--listCmd")
 
 
-task Settings, "display alla settings":
+task Settings, "display all settings":
   let lInfos = """
   Interpreter : [$1]
   Version     : [$7]
@@ -443,8 +443,8 @@ task NCompile, "compile using nimble":
 task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
   const
     lEnvs = @[
-      @[gcTargetOSEnvVarName, gcLinuxStr, gcWindowsStr], 
-      @[gcTargetCpuEnvVarName, gcAmd64, "i386"], 
+      @[gcTargetOSEnvVarName, gcLinuxStr, gcWindowsStr],
+      @[gcTargetCpuEnvVarName, gcAmd64, "i386"],
       @[gcGCCVersionToUseEnvVarName, "4.8", "5", "6", "7", "8"],
       @[gcNimBranchToUseEnvVarName, "version", "devel"]]
     lEnvsLow = lEnvs.low
