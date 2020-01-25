@@ -61,6 +61,7 @@ installRepositoryIfNotPresent() {
     fi
   done < <(find /etc/apt/ -name \*.list -print0)
   if [[ ${lResult} -eq 1 ]]; then
+    installIfNotPresent software-properties-common
     eval "sudo -E add-apt-repository -y ppa:${lPPAName}" &&
       eval "${aptGetCmd} update"
     lResult=$?
@@ -83,10 +84,12 @@ installIfNotPresent() {
 }
 
 patchUdev() {
-  # shellcheck disable=1004,2143
-  [ ! "$(grep -A1 '### END INIT INFO' /etc/init.d/udev | grep 'dpkg --configure -a || exit 0')" ] &&
-    sudo sed -i 's/### END INIT INFO/### END INIT INFO\
+  if [[ -f "/etc/init.d/udev" ]]; then
+    # shellcheck disable=1004,2143
+    [ ! "$(grep -A1 '### END INIT INFO' /etc/init.d/udev | grep 'dpkg --configure -a || exit 0')" ] &&
+      sudo sed -i 's/### END INIT INFO/### END INIT INFO\
 dpkg --configure -a || exit 0/' /etc/init.d/udev
+  fi
   return 0
 }
 
