@@ -221,5 +221,4 @@ fi
 #Before Script
 
 #Script
-nim Settings
 nim CTest release

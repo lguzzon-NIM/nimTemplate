@@ -194,6 +194,7 @@ proc setCC() =
       let lZigCC = lBuildCacheDir / "zigCC.bat"
       lZigCC.writeFile("@pushd \"$1\"\r\n@zig cc %*\r\n@popd"%[lBuildCacheDir])
     else:
+      let lZigCC = lBuildCacheDir / "zigCC.sh"
       echo "Error!!! zig not already supported in this platfom."
     switch "cc", "clang"
     switch "clang.exe", lZigCC
@@ -514,8 +515,9 @@ task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
   const
     lEnvs = @[@[gcTargetOSEnvVarName, gcLinuxStr, gcWindowsStr],
               @[gcTargetCpuEnvVarName, gcAmd64, "i386"],
-              @[gcGCCVersionToUseEnvVarName, "4.8", "5", "6", "7", "8", "9"],
-              @[gcNimBranchToUseEnvVarName, "master", "devel"]]
+              @[gcGCCVersionToUseEnvVarName, "8", "9"],
+              @[gcNimBranchToUseEnvVarName, "master", "devel"],
+              @[gcGCEnvVarName, "refc", "arc"]]
     lEnvsLow = lEnvs.low
     lEnvsHigh = lEnvs.high
   var
@@ -523,11 +525,13 @@ task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
 
   proc lGetEnvValue(aResult: string, aIndex: int) =
     if aIndex <= lEnvsHigh:
-      let lHeader = aResult & " " & lEnvs[aIndex][0] & "="
+      var lHeader = aResult 
+      lHeader.addSep(" ") 
+      lHeader &= lEnvs[aIndex][0] & "="
       for lIndex in 1..lEnvs[aIndex].high:
         lGetEnvValue(lHeader & lEnvs[aIndex][lIndex], aIndex + 1)
     else:
-      lResult &= "- " & aResult & "\n"
+      lResult &= "- '" & aResult & "'\n"
 
   lGetEnvValue("", lEnvsLow)
   echo lResult
