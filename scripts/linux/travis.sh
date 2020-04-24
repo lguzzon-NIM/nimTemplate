@@ -187,7 +187,7 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   ${aptGetCmd} update
 
   installIfNotPresent mingw-w64
-  installIfNotPresent winehq-devel
+  installIfNotPresent wine
   if [[ ${NIM_TARGET_CPU} == "i386" ]]; then
     echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
     export WINEARCH=win32
