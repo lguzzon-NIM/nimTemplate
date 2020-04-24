@@ -515,7 +515,7 @@ task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
   const
     lEnvs = @[@[gcTargetOSEnvVarName, gcLinuxStr, gcWindowsStr],
               @[gcTargetCpuEnvVarName, gcAmd64, "i386"],
-              @[gcGCCVersionToUseEnvVarName, "8", "9"],
+              @[gcGCCVersionToUseEnvVarName, "9"],
               @[gcNimBranchToUseEnvVarName, "master", "devel"],
               @[gcGCEnvVarName, "refc", "arc"]]
     lEnvsLow = lEnvs.low
