@@ -1,7 +1,7 @@
 # Check here https://config.travis-ci.com/explore
 # Format here https://jsonformatter.org/yaml-formatter
 os: linux
-dist: bionic
+dist: xenial
 language: c
 compiler: gcc
 branches:
@@ -14,22 +14,23 @@ env:
   global:
     - NIM_VERBOSITY=0
   matrix:
-    - 'NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=refc'
-    - 'NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=arc'
-    - 'NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc'
-    - 'NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc'
-    - 'NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=refc'
-    - 'NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=arc'
-    - 'NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc'
-    - 'NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc'
-    - 'NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=refc'
-    - 'NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=arc'
-    - 'NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc'
-    - 'NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc'
-    - 'NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=refc'
-    - 'NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=arc'
-    - 'NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc'
-    - 'NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc'
+    - "NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=refc"
+
+#    - 'NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=refc'
+#    - 'NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=arc'
+#    - 'NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc'
+#    - 'NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc'
+#    - 'NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=refc'
+#    - 'NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=arc'
+#    - 'NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc'
+#    - 'NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc'
+#    - 'NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=arc'
+#    - 'NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc'
+#    - 'NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc'
+#    - 'NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=refc'
+#    - 'NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=arc'
+#    - 'NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc'
+#    - 'NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc'
 
 script:
   - ./scripts/linux/travis.sh
