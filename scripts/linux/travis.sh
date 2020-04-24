@@ -175,6 +175,8 @@ nim --version
 
 if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
+  sudo add-apt-repository ppa:ubuntu-wine/ppa
+  sudo apt-get update
   export WINEPREFIX
   WINEPREFIX="$(pwd)/.wineNIM-${NIM_TARGET_CPU}"
   ${sudoCmd} dpkg --add-architecture i386
