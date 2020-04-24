@@ -178,6 +178,7 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   installIfNotPresent wget
   wget https://dl.winehq.org/wine-builds/Release.key
   sudo apt-key add Release.key
+  sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 76F1A20FF987672F
   sudo apt-add-repository 'https://dl.winehq.org/wine-builds/ubuntu/'
   sudo apt-get update
   export WINEPREFIX
