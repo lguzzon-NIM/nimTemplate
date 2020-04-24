@@ -173,6 +173,9 @@ sudo cp "./bin/nimsuggest" "/usr/bin/"
 sudo cp "./bin/testament" "/usr/bin/"
 popd
 
+installIfNotPresent openssl
+openssl help
+
 nim --version
 
 if [[ ${NIM_TARGET_OS} == "windows" ]]; then
