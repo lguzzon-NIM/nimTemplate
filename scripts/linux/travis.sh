@@ -175,7 +175,7 @@ nim --version
 
 if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
-  sudo add-apt-repository ppa:ubuntu-wine/ppa -y
+  sudo add-apt-repository ppa:wine/wine-builds -y
   sudo apt-get update
   export WINEPREFIX
   WINEPREFIX="$(pwd)/.wineNIM-${NIM_TARGET_CPU}"
@@ -183,7 +183,7 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   ${aptGetCmd} update
 
   installIfNotPresent mingw-w64
-  installIfNotPresent wine
+  installIfNotPresent winehq-devel
   if [[ ${NIM_TARGET_CPU} == "i386" ]]; then
     echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
     export WINEARCH=win32
