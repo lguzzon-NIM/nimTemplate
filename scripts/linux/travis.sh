@@ -114,12 +114,14 @@ gcc --version
 #Install
 
 #Install UPX
-readonly lUPXVersion=$(git ls-remote --tags "https://github.com/upx/upx.git" |
-  awk '{print $2}' |
-  grep -v '{}' |
-  awk -F"/" '{print $3}' |
-  tail -1 |
-  sed "s/v//g")
+readonly lUPXVersion=$(
+  git ls-remote --tags "https://github.com/upx/upx.git" |
+    awk '{print $2}' |
+    grep -v '{}' |
+    awk -F"/" '{print $3}' |
+    tail -1 |
+    sed "s/v//g"
+)
 curl -z upx.txz -o upx.txz -L "https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz"
 tar -xvf upx.txz
 export PATH
@@ -132,13 +134,9 @@ if uname -a | grep -q "_64"; then
   lBits=64
 fi
 
-git ls-remote --tags "https://github.com/nim-lang/nightlies.git" >NimTags.log
-
-echo "NimTags ------------------------------------------------------------"
-cat NimTags.log
-
 readonly lNimURL=$(
-  awk '{print $2}' <NimTags.log |
+  git ls-remote --tags "https://github.com/nim-lang/nightlies.git" |
+    awk '{print $2}' |
     grep -v '{}' |
     awk -F"/" '{print $3}' |
     grep "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]" |
