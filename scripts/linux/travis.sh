@@ -174,7 +174,9 @@ sudo cp "./bin/testament" "/usr/bin/"
 popd
 
 installIfNotPresent openssl
-openssl help
+openssl version -a
+export DYLD_LIBRARY_PATH
+DYLD_LIBRARY_PATH=$(which openssl)
 
 nim --version
 
