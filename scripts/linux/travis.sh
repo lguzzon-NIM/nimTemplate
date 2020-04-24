@@ -175,7 +175,10 @@ nim --version
 
 if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
-  sudo add-apt-repository ppa:wine/wine-builds -y
+  installIfNotPresent wget
+  wget https://dl.winehq.org/wine-builds/Release.key
+  sudo apt-key add Release.key
+  sudo apt-add-repository 'https://dl.winehq.org/wine-builds/ubuntu/'
   sudo apt-get update
   export WINEPREFIX
   WINEPREFIX="$(pwd)/.wineNIM-${NIM_TARGET_CPU}"
