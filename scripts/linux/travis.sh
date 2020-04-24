@@ -29,7 +29,7 @@ readonly aptGetInstallCmd="${aptGetCmd} --no-install-suggests --no-install-recom
 
 #Before Install
 if [ -z ${USE_GCC+x} ]; then
-  export USE_GCC="4.8"
+  export USE_GCC="9"
 fi
 if [ -z ${NIM_VERBOSITY+x} ]; then
   export NIM_VERBOSITY=0
@@ -135,8 +135,13 @@ fi
 # lNimBranch=devel
 # lNimBranch=version
 
+git ls-remote --tags "https://github.com/nim-lang/nightlies.git" >NimTags.log
+
+echo "NimTags ------------------------------------------------------------"
+cat NimTags.log
+
 readonly lNimURL=$(
-  git ls-remote --tags "https://github.com/nim-lang/nightlies.git" |
+  cat NimTags.log |
     awk '{print $2}' |
     grep -v '{}' |
     awk -F"/" '{print $3}' |
