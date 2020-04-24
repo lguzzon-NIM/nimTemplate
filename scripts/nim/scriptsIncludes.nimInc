@@ -516,7 +516,7 @@ task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
     lEnvs = @[@[gcTargetOSEnvVarName, gcLinuxStr, gcWindowsStr],
               @[gcTargetCpuEnvVarName, gcAmd64, "i386"],
               @[gcGCCVersionToUseEnvVarName, "9"],
-              @[gcNimBranchToUseEnvVarName, "master", "devel"],
+              @[gcNimTagSelector, "version", "devel"],
               @[gcGCEnvVarName, "refc", "arc"]]
     lEnvsLow = lEnvs.low
     lEnvsHigh = lEnvs.high
@@ -525,8 +525,8 @@ task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
 
   proc lGetEnvValue(aResult: string, aIndex: int) =
     if aIndex <= lEnvsHigh:
-      var lHeader = aResult 
-      lHeader.addSep(" ") 
+      var lHeader = aResult
+      lHeader.addSep(" ")
       lHeader &= lEnvs[aIndex][0] & "="
       for lIndex in 1..lEnvs[aIndex].high:
         lGetEnvValue(lHeader & lEnvs[aIndex][lIndex], aIndex + 1)

@@ -35,8 +35,8 @@ if [ -z ${NIM_VERBOSITY+x} ]; then
   export NIM_VERBOSITY=0
 fi
 
-if [ -z ${NIM_BRANCH+x} ]; then
-  export NIM_BRANCH=version
+if [ -z ${NIM_TAG_SELECTOR+x} ]; then
+  export NIM_TAG_SELECTOR=version
 fi
 
 if [ -z ${DISPLAY+x} ]; then
@@ -132,21 +132,17 @@ if uname -a | grep -q "_64"; then
   lBits=64
 fi
 
-# lNimBranch=devel
-# lNimBranch=version
-
 git ls-remote --tags "https://github.com/nim-lang/nightlies.git" >NimTags.log
 
 echo "NimTags ------------------------------------------------------------"
 cat NimTags.log
 
 readonly lNimURL=$(
-  cat NimTags.log |
-    awk '{print $2}' |
+  awk '{print $2}' <NimTags.log |
     grep -v '{}' |
     awk -F"/" '{print $3}' |
     grep "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]" |
-    grep "$NIM_BRANCH" |
+    grep "$NIM_TAG_SELECTOR" |
     tail -20 |
     tac |
     while IFS= read -r line; do
@@ -226,4 +222,5 @@ fi
 #Before Script
 
 #Script
+nim NInstallDeps
 nim CTest release

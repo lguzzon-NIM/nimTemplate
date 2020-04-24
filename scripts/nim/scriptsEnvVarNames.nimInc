@@ -8,4 +8,4 @@ const
   gcNimVerbosityEnvVarName* = "NIM_VERBOSITY"
 
   gcGCCVersionToUseEnvVarName* = "USE_GCC"
-  gcNimBranchToUseEnvVarName* = "NIM_BRANCH"
+  gcNimTagSelector* = "NIM_TAG_SELECTOR"
