@@ -29,14 +29,14 @@ readonly aptGetInstallCmd="${aptGetCmd} --no-install-suggests --no-install-recom
 
 #Before Install
 if [ -z ${USE_GCC+x} ]; then
-  export USE_GCC="4.8"
+  export USE_GCC="9"
 fi
 if [ -z ${NIM_VERBOSITY+x} ]; then
   export NIM_VERBOSITY=0
 fi
 
-if [ -z ${NIM_BRANCH+x} ]; then
-  export NIM_BRANCH=version
+if [ -z ${NIM_TAG_SELECTOR+x} ]; then
+  export NIM_TAG_SELECTOR=version
 fi
 
 if [ -z ${DISPLAY+x} ]; then
@@ -114,12 +114,14 @@ gcc --version
 #Install
 
 #Install UPX
-readonly lUPXVersion=$(git ls-remote --tags "https://github.com/upx/upx.git" |
-  awk '{print $2}' |
-  grep -v '{}' |
-  awk -F"/" '{print $3}' |
-  tail -1 |
-  sed "s/v//g")
+readonly lUPXVersion=$(
+  git ls-remote --tags "https://github.com/upx/upx.git" |
+    awk '{print $2}' |
+    grep -v '{}' |
+    awk -F"/" '{print $3}' |
+    tail -1 |
+    sed "s/v//g"
+)
 curl -z upx.txz -o upx.txz -L "https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz"
 tar -xvf upx.txz
 export PATH
@@ -132,16 +134,13 @@ if uname -a | grep -q "_64"; then
   lBits=64
 fi
 
-# lNimBranch=devel
-# lNimBranch=version
-
 readonly lNimURL=$(
   git ls-remote --tags "https://github.com/nim-lang/nightlies.git" |
     awk '{print $2}' |
     grep -v '{}' |
     awk -F"/" '{print $3}' |
     grep "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]" |
-    grep "$NIM_BRANCH" |
+    grep "$NIM_TAG_SELECTOR" |
     tail -20 |
     tac |
     while IFS= read -r line; do
@@ -174,7 +173,7 @@ popd
 
 nim --version
 
-if [[ ${NIM_TARGET_OS} == "windows" ]]; then
+if [[ "${NIM_TARGET_OS}" == "windows" ]]; then
   echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
   export WINEPREFIX
   WINEPREFIX="$(pwd)/.wineNIM-${NIM_TARGET_CPU}"
@@ -183,7 +182,7 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
 
   installIfNotPresent mingw-w64
   installIfNotPresent wine
-  if [[ ${NIM_TARGET_CPU} == "i386" ]]; then
+  if [[ "${NIM_TARGET_CPU}" == "i386" ]]; then
     echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
     export WINEARCH=win32
     {
@@ -195,7 +194,7 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   else
     echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
     export WINEARCH=win64
-    if [[ ${NIM_TARGET_CPU} == "amd64" ]]; then
+    if [[ "${NIM_TARGET_CPU}" == "amd64" ]]; then
       {
         echo amd64.windows.gcc.path = \"/usr/bin\"
         echo amd64.windows.gcc.exe = \"x86_64-w64-mingw32-gcc\"
@@ -206,9 +205,9 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   fi
   wine hostname
 else
-  if [[ ${NIM_TARGET_OS} == "linux" ]]; then
+  if [[ "${NIM_TARGET_OS}" == "linux" ]]; then
     echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
-    if [[ ${NIM_TARGET_CPU} == "i386" ]]; then
+    if [[ "${NIM_TARGET_CPU}" == "i386" ]]; then
       echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
       installIfNotPresent gcc-${USE_GCC}-multilib
       installIfNotPresent g++-${USE_GCC}-multilib
@@ -221,5 +220,5 @@ fi
 #Before Script
 
 #Script
-nim Settings
+nim NInstallDeps
 nim CTest release
