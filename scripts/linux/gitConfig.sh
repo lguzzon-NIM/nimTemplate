@@ -17,11 +17,11 @@ git config --global core.autocrlf true
 # original --> git config --global core.safecrlf true
 git config --global core.safecrlf warn
 
-git config --global --replace-all alias.co checkout
-git config --global --replace-all alias.ci commit
-git config --global --replace-all alias.st status
-git config --global --replace-all alias.sti status --ignored
-git config --global --replace-all alias.br branch
+git config --global --replace-all alias.co "checkout"
+git config --global --replace-all alias.ci "commit"
+git config --global --replace-all alias.st "status"
+git config --global --replace-all alias.sti "status --ignored"
+git config --global --replace-all alias.br "branch"
 
 # https://switowski.com/git/2019/01/18/7-git-functions-to-make-your-life-easier.html
 git config --global --replace-all alias.aliases "config --get-regexp alias"
