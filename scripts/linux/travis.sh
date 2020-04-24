@@ -173,11 +173,6 @@ sudo cp "./bin/nimsuggest" "/usr/bin/"
 sudo cp "./bin/testament" "/usr/bin/"
 popd
 
-installIfNotPresent openssl
-openssl version -a
-export DYLD_LIBRARY_PATH
-DYLD_LIBRARY_PATH=$(which openssl)
-
 nim --version
 
 if [[ ${NIM_TARGET_OS} == "windows" ]]; then
