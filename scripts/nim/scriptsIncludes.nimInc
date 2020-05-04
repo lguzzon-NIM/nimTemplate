@@ -192,10 +192,25 @@ proc setCC() =
     let lBuildCacheDir = getBuildCacheDir()
     when defined(windows):
       let lZigCC = lBuildCacheDir / "zigCC.bat"
-      lZigCC.writeFile("@pushd \"$1\"\r\n@zig cc %*\r\n@popd"%[lBuildCacheDir])
+      const lZigCCContent = """
+@pushd \"$1\"
+@zig cc %*
+@popd
+"""
+      lZigCC.writeFile(lZigCCContent%[lBuildCacheDir])
     else:
       let lZigCC = lBuildCacheDir / "zigCC.sh"
-      echo "Error!!! zig not already supported in this platfom."
+      const lZigCCContent = """
+#!/bin/bash
+set -e
+set -o pipefail
+set -o xtrace
+pushd "$1"
+zig cc "$$@"
+popd
+"""
+      lZigCC.writeFile(lZigCCContent%[lBuildCacheDir])
+      exec("chmod +x \"$1\""%[lZigCC])
     switch "cc", "clang"
     switch "clang.exe", lZigCC
     switch "clang.linkerexe", lZigCC
@@ -203,6 +218,8 @@ proc setCC() =
     switch "cc", lGetCC
   case lGetCC
   of "gcc":
+    switch "passL", "-static"
+  of "zig":
     switch "passL", "-static"
   else:
     discard
