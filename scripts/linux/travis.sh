@@ -62,8 +62,8 @@ installRepositoryIfNotPresent() {
   done < <(find /etc/apt/ -name \*.list -print0)
   if [[ ${lResult} -eq 1 ]]; then
     installIfNotPresent software-properties-common
-    eval "sudo -E add-apt-repository -y ppa:${lPPAName}" &&
-      eval "${aptGetCmd} update"
+    eval "sudo -E add-apt-repository -y ppa:${lPPAName}" \
+      && eval "${aptGetCmd} update"
     lResult=$?
   fi
   return ${lResult}
@@ -75,9 +75,9 @@ installIfNotPresent() {
   local -r lPostCommandToRun="${3:-true}"
   local lResult=0
   if [[ $(dpkg-query -W -f='${Status}' "${lPackageName}" 2>/dev/null | grep -c "ok installed") -eq 0 ]]; then
-    eval "${lPreCommandToRun}" &&
-      eval "${aptGetInstallCmd} ${lPackageName}" &&
-      eval "${lPostCommandToRun}"
+    eval "${lPreCommandToRun}" \
+      && eval "${aptGetInstallCmd} ${lPackageName}" \
+      && eval "${lPostCommandToRun}"
     lResult=$?
   fi
   return ${lResult}
@@ -86,8 +86,8 @@ installIfNotPresent() {
 patchUdev() {
   if [[ -f "/etc/init.d/udev" ]]; then
     # shellcheck disable=1004,2143
-    [ ! "$(grep -A1 '### END INIT INFO' /etc/init.d/udev | grep 'dpkg --configure -a || exit 0')" ] &&
-      sudo sed -i 's/### END INIT INFO/### END INIT INFO\
+    [ ! "$(grep -A1 '### END INIT INFO' /etc/init.d/udev | grep 'dpkg --configure -a || exit 0')" ] \
+      && sudo sed -i 's/### END INIT INFO/### END INIT INFO\
 dpkg --configure -a || exit 0/' /etc/init.d/udev
   fi
   return 0
@@ -115,12 +115,12 @@ gcc --version
 
 #Install UPX
 readonly lUPXVersion=$(
-  git ls-remote --tags "https://github.com/upx/upx.git" |
-    awk '{print $2}' |
-    grep -v '{}' |
-    awk -F"/" '{print $3}' |
-    tail -1 |
-    sed "s/v//g"
+  git ls-remote --tags "https://github.com/upx/upx.git" \
+    | awk '{print $2}' \
+    | grep -v '{}' \
+    | awk -F"/" '{print $3}' \
+    | tail -1 \
+    | sed "s/v//g"
 )
 curl -z upx.txz -o upx.txz -L "https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz"
 tar -xvf upx.txz
@@ -135,18 +135,18 @@ if uname -a | grep -q "_64"; then
 fi
 
 readonly lNimURL=$(
-  git ls-remote --tags "https://github.com/nim-lang/nightlies.git" |
-    awk '{print $2}' |
-    grep -v '{}' |
-    awk -F"/" '{print $3}' |
-    grep "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]" |
-    grep "$NIM_TAG_SELECTOR" |
-    tail -20 |
-    tac |
-    while IFS= read -r line; do
+  git ls-remote --tags "https://github.com/nim-lang/nightlies.git" \
+    | awk '{print $2}' \
+    | grep -v '{}' \
+    | awk -F"/" '{print $3}' \
+    | grep "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]" \
+    | grep "$NIM_TAG_SELECTOR" \
+    | tail -20 \
+    | tac \
+    | while IFS= read -r line; do
       lURL="https://github.com/nim-lang/nightlies/releases/tag/${line}"
-      lNimFile=$(curl -s "$lURL" | grep "linux_x${lBits}" | sed -n "s/^.*href=\"\([^\"]*\)\".*$/\1/p" |
-        while IFS= read -r line; do
+      lNimFile=$(curl -s "$lURL" | grep "linux_x${lBits}" | sed -n "s/^.*href=\"\([^\"]*\)\".*$/\1/p" \
+        | while IFS= read -r line; do
           echo "https://github.com${line}"
           break
         done)
@@ -173,7 +173,7 @@ popd
 
 nim --version
 
-if [[ "${NIM_TARGET_OS}" == "windows" ]]; then
+if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
   export WINEPREFIX
   WINEPREFIX="$(pwd)/.wineNIM-${NIM_TARGET_CPU}"
@@ -182,7 +182,7 @@ if [[ "${NIM_TARGET_OS}" == "windows" ]]; then
 
   installIfNotPresent mingw-w64
   installIfNotPresent wine
-  if [[ "${NIM_TARGET_CPU}" == "i386" ]]; then
+  if [[ ${NIM_TARGET_CPU} == "i386" ]]; then
     echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
     export WINEARCH=win32
     {
@@ -194,7 +194,7 @@ if [[ "${NIM_TARGET_OS}" == "windows" ]]; then
   else
     echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
     export WINEARCH=win64
-    if [[ "${NIM_TARGET_CPU}" == "amd64" ]]; then
+    if [[ ${NIM_TARGET_CPU} == "amd64" ]]; then
       {
         echo amd64.windows.gcc.path = \"/usr/bin\"
         echo amd64.windows.gcc.exe = \"x86_64-w64-mingw32-gcc\"
@@ -205,9 +205,9 @@ if [[ "${NIM_TARGET_OS}" == "windows" ]]; then
   fi
   wine hostname
 else
-  if [[ "${NIM_TARGET_OS}" == "linux" ]]; then
+  if [[ ${NIM_TARGET_OS} == "linux" ]]; then
     echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
-    if [[ "${NIM_TARGET_CPU}" == "i386" ]]; then
+    if [[ ${NIM_TARGET_CPU} == "i386" ]]; then
       echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
       installIfNotPresent gcc-${USE_GCC}-multilib
       installIfNotPresent g++-${USE_GCC}-multilib

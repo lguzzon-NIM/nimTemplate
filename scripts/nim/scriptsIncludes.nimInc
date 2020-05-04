@@ -581,6 +581,56 @@ task FormatSourceFiles, "Format source files using nimpretty":
       if (lExec.output.len > 0):
         echo lExec.output
 
+
+task FormatShfmtFiles, "Format shfmt files":
+  if gorgeEx("shfmt -version").exitCode != 0:
+    echo "Error shfmt not present in path!!!"
+  else:
+    let lCurrentDir = getCurrentDir()
+    let lExec = gorgeEx("shfmt -w -bn -ci -i 2 -f -s \"$1\""%[lCurrentDir])
+    if (lExec.exitCode != 0):
+      echo ("Error!!!")
+    if (lExec.output.len > 0):
+      var lFilesToFormat = lExec.output.splitLines(false)
+      echo lFilesToFormat
+      while lFilesToFormat.len > 0:
+        let lFileToFormat = lFilesToFormat.pop()
+        echo "Formatting [$1]"%[lFileToFormat]
+        let lExec = gorgeEx("shfmt -w -bn -ci -i 2 -s \"$1\""%[lFileToFormat])
+        if (lExec.exitCode != 0):
+          echo ("Error!!!")
+        if (lExec.output.len > 0):
+          echo lExec.output
+
+
+task FormatYamlFiles, "Format yaml files using yq":
+  if gorgeEx("yq --version").exitCode != 0:
+    echo "Error yq not present in path!!!"
+  else:
+    var lFilesToFormat: seq[string] = @[]
+    var lDirsToSearch = @["."]
+    const lcStartWith = "." & DirSep & "."
+    while lDirsToSearch.len > 0:
+      let lDirToSearch = lDirsToSearch.pop()
+      let lFilesToAdd = listFiles(lDirToSearch)
+      lFilesToFormat.add(lFilesToAdd.filter(
+        proc (aItem: string): bool = aItem.contains(".yml") or aItem.contains(".yaml"))
+      )
+      let lDirsToAdd = listDirs(lDirToSearch)
+      lDirsToSearch.add(lDirsToAdd.filter(
+        proc (aItem: string): bool = not (aItem.startsWith(lcStartWith) or aItem.startsWith("." & DirSep & gcBuildDir)))
+      )
+    let lCurrentDir = getCurrentDir()
+    while lFilesToFormat.len > 0:
+      let lFileToFormat = lCurrentDir / lFilesToFormat.pop()
+      echo "Formatting [$1]"%[lFileToFormat]
+      let lExec = gorgeEx("yq r \"$1\" -P -I4 > yq.tmp && mv yq.tmp \"$1\""%[lFileToFormat])
+      if (lExec.exitCode != 0):
+        echo ("Error!!!")
+      if (lExec.output.len > 0):
+        echo lExec.output
+
+
 task CheckProject, "Project checking ...":
   dependsOn Settings
   dependsOn NInstallDeps
@@ -592,3 +642,4 @@ task CheckProject, "Project checking ...":
 task Lint, "Project linting ...":
   dependsOn CheckProject
   dependsOn FormatSourceFiles
+  dependsOn FormatShfmtFiles
