@@ -10,6 +10,7 @@ const
   gcWindowsStr = "windows"
   gcLinuxStr = "linux"
   gcAmd64 = "amd64"
+  gcI386 = "i386"
 
   gcNimFileExt = "nim"
 
@@ -186,6 +187,15 @@ proc findTestFiles (): seq[string] =
         result.add(lFilePath)
 
 
+proc getZigTarget(): string =
+  var lTargetCPU = getTargetCPU()
+  case lTargetCPU:
+  of gcAmd64:
+    lTargetCPU = "x86_64"
+  else:
+    discard
+  "$1-$2-gnu"%[lTargetCPU, getTargetOS()]
+
 proc setCC() =
   let lGetCC = getCC()
   if lGetCC.startsWith("zig"):
@@ -194,10 +204,10 @@ proc setCC() =
       let lZigCC = lBuildCacheDir / "zigCC.bat"
       const lZigCCContent = """
 @pushd "$1"
-@zig cc %*
+@zig cc $2%*
 @popd
 """
-      lZigCC.writeFile(lZigCCContent%[lBuildCacheDir])
+      lZigCC.writeFile(lZigCCContent%[lBuildCacheDir, "-target " & getZigTarget() & " "])
     else:
       let lZigCC = lBuildCacheDir / "zigCC.sh"
       const lZigCCContent = """
@@ -206,10 +216,10 @@ set -e
 set -o pipefail
 # set -o xtrace
 pushd "$1"
-zig cc "$$@"
+zig cc $2"$$@"
 popd
 """
-      lZigCC.writeFile(lZigCCContent%[lBuildCacheDir])
+      lZigCC.writeFile(lZigCCContent%[lBuildCacheDir, get])
       exec("chmod +x \"$1\""%[lZigCC])
     switch "cc", "clang"
     switch "clang.exe", lZigCC
@@ -265,7 +275,7 @@ proc switchCommon () =
       switch "hints", "off"
     case hostOS
     of gcLinuxStr:
-      if ((hostCPU == gcAmd64) and ("i386" == lTargetCPU)):
+      if ((gcAmd64 == hostCPU) and (gcI386 == lTargetCPU)):
         switch "passC", "-m32"
         switch "passL", "-m32"
     of gcWindowsStr:
@@ -531,7 +541,7 @@ task NCompile, "compile using nimble":
 task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
   const
     lEnvs = @[@[gcTargetOSEnvVarName, gcLinuxStr, gcWindowsStr],
-              @[gcTargetCpuEnvVarName, gcAmd64, "i386"],
+              @[gcTargetCpuEnvVarName, gcAmd64, gcI386],
               @[gcGCCVersionToUseEnvVarName, "9"],
               @[gcNimTagSelector, "version", "devel"],
               @[gcGCEnvVarName, "refc", "arc"]]
@@ -591,8 +601,9 @@ task FormatShfmtFiles, "Format shfmt files":
     if (lExec.exitCode != 0):
       echo ("Error!!!")
     if (lExec.output.len > 0):
-      var lFilesToFormat = lExec.output.splitLines(false)
-      echo lFilesToFormat
+      var lFilesToFormat = lExec.output.splitLines(false).filter(
+        proc (aItem: string): bool = aItem != ""
+      )
       while lFilesToFormat.len > 0:
         let lFileToFormat = lFilesToFormat.pop()
         echo "Formatting [$1]"%[lFileToFormat]
