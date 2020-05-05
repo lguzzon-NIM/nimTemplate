@@ -193,7 +193,7 @@ proc setCC() =
     when defined(windows):
       let lZigCC = lBuildCacheDir / "zigCC.bat"
       const lZigCCContent = """
-@pushd \"$1\"
+@pushd "$1"
 @zig cc %*
 @popd
 """
@@ -204,7 +204,7 @@ proc setCC() =
 #!/bin/bash
 set -e
 set -o pipefail
-set -o xtrace
+# set -o xtrace
 pushd "$1"
 zig cc "$$@"
 popd

@@ -31,5 +31,6 @@ git config --global --replace-all alias.squash '!f(){ git reset --soft HEAD~${1}
 git config --global --replace-all alias.sqc '!f(){ git reset --soft HEAD~$1 && git commit --edit -m"$(git log --format=%B --reverse HEAD..HEAD@{1})"; }; f'
 
 git config --global credential.helper 'cache --timeout=3600'
+
 # See also
 #   https://github.com/nvie/git-toolbelt
