@@ -56,6 +56,15 @@ proc getCC (): string =
     gcCCDefault
 
 
+proc getAbi(): string =
+  if existsEnv(gcABIEnvVarName):
+    getEnv(gcABIEnvVarName)
+  else:
+    if "windows" == getTargetOS():
+      "gnu"
+    else:
+      "musl"
+
 proc getGC(): string =
   if existsEnv(gcGCEnvVarName):
     result = getEnv(gcGCEnvVarName)
@@ -91,7 +100,10 @@ proc getOsCpuCompilerName(): string =
   of "js":
     result = "$1"%[lTargetCPU]
   else:
-    result = "$1-$2-$3-$4"%[getTargetOS(), lTargetCPU, getCC(), getGC()]
+    if "zig" == getCC():
+      result = "$1-$2-$3-$4-$5"%[getTargetOS(), lTargetCPU, getCC(), getABI(), getGC()]
+    else:
+      result = "$1-$2-$3-$4"%[getTargetOS(), lTargetCPU, getCC(), getGC()]
   if "release" == splitCmdLine().params:
     result = "$1_release"%[result]
 
@@ -194,7 +206,7 @@ proc getZigTarget(): string =
     lTargetCPU = "x86_64"
   else:
     discard
-  "$1-$2-gnu"%[lTargetCPU, getTargetOS()]
+  "$1-$2-$3"%[lTargetCPU, getTargetOS(), getAbi()]
 
 proc setCC() =
   let lGetCC = getCC()
@@ -215,11 +227,11 @@ proc setCC() =
 set -e
 set -o pipefail
 # set -o xtrace
-pushd "$1"
+pushd "$1" >/dev/null
 zig cc $2"$$@"
-popd
+popd >/dev/null
 """
-      lZigCC.writeFile(lZigCCContent%[lBuildCacheDir, get])
+      lZigCC.writeFile(lZigCCContent%[lBuildCacheDir, "-target " & getZigTarget() & " "])
       exec("chmod +x \"$1\""%[lZigCC])
     switch "cc", "clang"
     switch "clang.exe", lZigCC
@@ -341,6 +353,9 @@ task Tasks, "list all tasks":
 
 
 task Settings, "display all settings":
+  let lCC = getCC()
+  let lABI =
+    if "zig" == lCC: "  Using ABI   : [$1] <- $$$2\n" % [getAbi(), gcABIEnvVarName] else: "\n"
   let lInfos = """
   Interpreter : [$1]
   Version     : [$7]
@@ -351,9 +366,20 @@ task Settings, "display all settings":
   Compiler CC : [$8] <- $$$12
   Using GC    : [$9] <- $$$13
   Binary File : [$6]
-  """
-  echo lInfos%[if lcIsNimble: "Nimble" else: "Nim", getTargetOS(), getTargetCPU(
-    ), getSourceDir(), getSourceMainFile(), getBuildBinaryFilePath(), NimVersion, getCC(), getGC(), gcTargetOSEnvVarName, gcTargetCpuEnvVarName, gcCCEnvVarName, gcGCEnvVarName]
+"""
+  echo lInfos%[if lcIsNimble: "Nimble" else: "Nim",
+               getTargetOS(),
+               getTargetCPU(),
+               getSourceDir(),
+               getSourceMainFile(),
+               getBuildBinaryFilePath(),
+               NimVersion,
+               lCC,
+               getGC(),
+               gcTargetOSEnvVarName,
+               gcTargetCpuEnvVarName,
+               gcCCEnvVarName,
+               gcGCEnvVarName] & lABI
 
 
 task CreateNew, "create a new project from " & "n" & "imTemplate":
