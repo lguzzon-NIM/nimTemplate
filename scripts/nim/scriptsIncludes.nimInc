@@ -25,7 +25,9 @@ const
   gcBuildTargetDir = gcBuildDir / gcTargetDirName
   gcRepoURL = "https://github.com/lguzzon-NIM/" & "n" & "imTemplate.git"
 
-  gcCCDefault = "gcc"
+  gcGCC = "gcc"
+  gcZIG = "zig"
+  gcCCDefault = gcGCC
 
   # --gc:refc|markAndSweep|boehm|go|none|regions
   # switch "gc", "refc" - zig KO
@@ -100,10 +102,11 @@ proc getOsCpuCompilerName(): string =
   of "js":
     result = "$1"%[lTargetCPU]
   else:
-    if "zig" == getCC():
-      result = "$1-$2-$3-$4-$5"%[getTargetOS(), lTargetCPU, getCC(), getABI(), getGC()]
+    let lCC=getCC()
+    if gcZIG == lCC:
+      result = "$1-$2-$3-$4-$5"%[getTargetOS(), lTargetCPU, getABI(), lCC, getGC()]
     else:
-      result = "$1-$2-$3-$4"%[getTargetOS(), lTargetCPU, getCC(), getGC()]
+      result = "$1-$2-$3-$4"%[getTargetOS(), lTargetCPU, lCC, getGC()]
   if "release" == splitCmdLine().params:
     result = "$1_release"%[result]
 
@@ -209,8 +212,8 @@ proc getZigTarget(): string =
   "$1-$2-$3"%[lTargetCPU, getTargetOS(), getAbi()]
 
 proc setCC() =
-  let lGetCC = getCC()
-  if lGetCC.startsWith("zig"):
+  let lCC = getCC()
+  if lCC.startsWith(gcZIG):
     let lBuildCacheDir = getBuildCacheDir()
     when defined(windows):
       let lZigCC = lBuildCacheDir / "zigCC.bat"
@@ -237,11 +240,11 @@ popd >/dev/null
     switch "clang.exe", lZigCC
     switch "clang.linkerexe", lZigCC
   else:
-    switch "cc", lGetCC
-  case lGetCC
-  of "gcc":
+    switch "cc", lCC
+  case lCC
+  of gcGCC:
     switch "passL", "-static"
-  of "zig":
+  of gcZIG:
     switch "passL", "-static"
   else:
     discard
@@ -355,7 +358,7 @@ task Tasks, "list all tasks":
 task Settings, "display all settings":
   let lCC = getCC()
   let lABI =
-    if "zig" == lCC: "  Using ABI   : [$1] <- $$$2\n" % [getAbi(), gcABIEnvVarName] else: "\n"
+    if gcZIG == lCC: "  Using ABI   : [$1] <- $$$2\n" % [getAbi(), gcABIEnvVarName] else: "\n"
   let lInfos = """
   Interpreter : [$1]
   Version     : [$7]
