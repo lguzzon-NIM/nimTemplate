@@ -16,6 +16,7 @@ cache:
 env:
   global:
     - NIM_VERBOSITY=0
+    - CHOOSENIM_BRANCH=devel
   matrix:
     - "NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=refc"
     - "NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=arc"
