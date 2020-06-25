@@ -129,47 +129,7 @@ PATH="$(pwd)/upx-${lUPXVersion}-amd64_linux${PATH:+:$PATH}" || true
 
 #Install Nim
 
-lBits=32
-if uname -a | grep -q "_64"; then
-  lBits=64
-fi
-
-readonly lNimURL=$(
-  git ls-remote --tags "https://github.com/nim-lang/nightlies.git" \
-    | awk '{print $2}' \
-    | grep -v '{}' \
-    | awk -F"/" '{print $3}' \
-    | grep "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]" \
-    | grep "$NIM_TAG_SELECTOR" \
-    | tail -20 \
-    | tac \
-    | while IFS= read -r line; do
-      lURL="https://github.com/nim-lang/nightlies/releases/tag/${line}"
-      lNimFile=$(curl -s "$lURL" | grep "linux_x${lBits}" | sed -n "s/^.*href=\"\([^\"]*\)\".*$/\1/p" \
-        | while IFS= read -r line; do
-          echo "https://github.com${line}"
-          break
-        done)
-      if [ -n "$lNimFile" ]; then
-        echo "$lNimFile"
-        break
-      fi
-    done
-)
-lNimPackageFile="${lNimURL##*/}"
-lNimPackageExtractedDir="${lNimPackageFile%-*}"
-curl -o "${lNimPackageFile}" -L "$lNimURL"
-tar xf "$lNimPackageFile"
-pushd "$lNimPackageExtractedDir"
-sudo ./install.sh "/usr/bin"
-sudo cp "./bin/nim" "/usr/bin/"
-sudo cp "./bin/nimble" "/usr/bin/"
-sudo cp "./bin/nimfind" "/usr/bin/"
-sudo cp "./bin/nimgrep" "/usr/bin/"
-sudo cp "./bin/nimpretty" "/usr/bin/"
-sudo cp "./bin/nimsuggest" "/usr/bin/"
-sudo cp "./bin/testament" "/usr/bin/"
-popd
+source $(dirname "$0")/travisNim.sh
 
 nim --version
 

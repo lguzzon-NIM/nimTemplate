@@ -10,6 +10,9 @@ branches:
     - develop
     - '/^release\/.*$/'
     - '/^hotfix\/.*$/'
+cache:
+  directories:
+    - "$HOME/.choosenim"
 env:
   global:
     - NIM_VERBOSITY=0
