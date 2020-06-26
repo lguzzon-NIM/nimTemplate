@@ -16,7 +16,7 @@ if ! type -P choosenim &> /dev/null; then
     cd -
   fi
 
-  export CHOOSENIM_CHOOSE_VERSION="$CHOOSENIM_BRANCH --latest"
+  export CHOOSENIM_CHOOSE_VERSION="$NIM_TAG_SELECTOR --latest"
   curl https://nim-lang.org/choosenim/init.sh -sSf > init.sh
   sh init.sh -y
   cp $HOME/.nimble/bin/choosenim$EXT $GITBIN/.
@@ -28,8 +28,8 @@ if ! type -P choosenim &> /dev/null; then
 else
   echo "Already installed"
   rm -rf $HOME/.choosenim/current
-  choosenim update $CHOOSENIM_BRANCH --latest
-  choosenim $CHOOSENIM_BRANCH
+  choosenim update $NIM_TAG_SELECTOR --latest
+  choosenim $NIM_TAG_SELECTOR
 fi
 
 if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
