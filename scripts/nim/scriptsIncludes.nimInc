@@ -68,6 +68,8 @@ proc getAbi(): string =
       "musl"
 
 proc getGC(): string =
+  # refc|markAndSweep|boehm|go|none|regions
+  # arc|orc
   if existsEnv(gcGCEnvVarName):
     result = getEnv(gcGCEnvVarName)
   else:
