@@ -6,5 +6,5 @@ import nimTemplate/consts
 
 
 suite "unit-test suite":
-    test "getMessage":
-        assert(cHelloWorld == getMessage())
+  test "getMessage":
+    assert(cHelloWorld == getMessage())

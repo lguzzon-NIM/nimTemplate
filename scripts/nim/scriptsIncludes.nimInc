@@ -1,6 +1,7 @@
 
 import strutils
-import os
+import sequtils
+from os import `/`, splitFile, ExeExt, DirSep
 
 include "scriptsEnvVarNames.nimInc"
 
@@ -23,6 +24,16 @@ const
   gcBuildTargetDir = gcBuildDir / gcTargetDirName
   gcRepoURL = "https://github.com/lguzzon-NIM/" & "n" & "imTemplate.git"
 
+  gcCCDefault = "gcc"
+
+  # --gc:refc|markAndSweep|boehm|go|none|regions
+  # switch "gc", "refc" - zig KO
+  # switch "gc", "markAndSweep" - zig KO
+  # switch "gc", "boehm" - zig ok
+  # switch "gc", "regions" - zig ok
+  # switch "gc", "arc" ???
+  # switch "gc", "arc" #???
+  gcGCDefault = "refc"
 
 proc getTargetOS (): string =
   if existsEnv(gcTargetOSEnvVarName):
@@ -37,21 +48,63 @@ proc getTargetCPU (): string =
   else:
     hostCPU
 
-
-template osCpuDirName(): string =
-  "$1-$2"%[getTargetOS(), getTargetCPU()]
-
-
-proc gcBuildCacheDir (): string =
-  gcBuildDir / gcCacheDirName / osCpuDirName()
+proc getCC (): string =
+  if existsEnv(gcCCEnvVarName):
+    getEnv(gcCCEnvVarName)
+  else:
+    gcCCDefault
 
 
-proc gcBuildCacheTestDir (): string =
-  gcBuildCacheDir() / gcTestDirName
+proc getGC(): string =
+  if existsEnv(gcGCEnvVarName):
+    result = getEnv(gcGCEnvVarName)
+  else:
+    result = gcGCDefault
 
 
-proc gcBuildTargetTestDir (): string =
-  "$1-$2"%[gcBuildTargetDir, gcTestDirName] / osCpuDirName()
+proc splitCmdLine (): tuple[options, command, params: string] =
+  var lIndex = 1
+  let lCount: int = paramCount()
+  var lResult = ""
+  while lIndex <= lCount:
+    let lParam0 = paramStr(lIndex)
+    if lParam0.startsWith('-'):
+      lResult &= " \"$1\""%[paramStr(lIndex)]
+      lIndex.inc
+    else:
+      break
+  result.options = lResult.strip()
+  if (lIndex <= lCount):
+    result.command = paramStr(lIndex).strip()
+    lIndex.inc
+  lResult = ""
+  while lIndex <= lCount:
+    lResult &= " " & paramStr(lIndex)
+    lIndex.inc
+  result.params = lResult.strip()
+
+
+proc getOsCpuCompilerName(): string =
+  let lTargetCPU = getTargetCPU()
+  case lTargetCPU
+  of "js":
+    result = "$1"%[lTargetCPU]
+  else:
+    result = "$1-$2-$3-$4"%[getTargetOS(), lTargetCPU, getCC(), getGC()]
+  if "release" == splitCmdLine().params:
+    result = "$1_release"%[result]
+
+
+proc getBuildCacheDir (): string =
+  gcBuildDir / gcCacheDirName / getOsCpuCompilerName()
+
+
+proc getBuildCacheTestDir (): string =
+  getBuildCacheDir() / gcTestDirName
+
+
+proc getBuildTargetTestDir (): string =
+  "$1-$2"%[gcBuildTargetDir, gcTestDirName] / getOsCpuCompilerName()
 
 
 proc getNameFromDir(aPath: string): string =
@@ -73,7 +126,7 @@ proc getNimVerbosity (): string =
 
 
 proc getBinaryFileNameNoExt (): string =
-  "$1_$2_$3"%[thisDir().getNameFromDir(), getTargetOS(), getTargetCPU()]
+  "$1-$2"%[thisDir().getNameFromDir(), getOsCpuCompilerName()]
 
 
 proc getBinaryFileExt (): string =
@@ -95,30 +148,9 @@ proc getBuildBinaryFilePath (): string =
   gcBuildTargetDir / getBinaryFileName()
 
 
-proc splitCmdLine (): tuple[options, command, params: string] =
-  var lIndex = 1
-  let lCount = system.paramCount()
-  var lResult = ""
-  while lIndex <= lCount:
-    if system.paramStr(lIndex)[0] == '-':
-      lResult &= " \"$1\""%[system.paramStr(lIndex)]
-      lIndex.inc
-    else:
-      break
-  result.options = lResult.strip()
-  if (lIndex <= lCount):
-    result.command = system.paramStr(lIndex).strip()
-    lIndex.inc
-  lResult = ""
-  while lIndex <= lCount:
-    lResult &= " " & system.paramStr(lIndex)
-    lIndex.inc
-  result.params = lResult.strip()
-
-
 template selfExecWithDefaults (aCommand: string) =
   var lCmdLine = splitCmdLine()
-  if (getNimVerbosity() == "0") and (not lCmdLine.options.contains("--hint")):
+  if ("0" == getNimVerbosity()) and (not lCmdLine.options.contains("--hint")):
     lCmdLine.options &= " --hints:off"
   let lCommand = lCmdLine.options & " " & aCommand.strip() & " " &
       lCmdLine.params
@@ -134,8 +166,8 @@ template dependsOn (tasks: untyped) =
 
 
 proc build_create () =
-  for Dir in @[gcBuildCacheDir(), gcBuildTargetDir, gcBuildTargetTestDir()]:
-    if not system.dirExists(Dir):
+  for Dir in @[getBuildCacheDir(), gcBuildTargetDir, getBuildTargetTestDir()]:
+    if not dirExists(Dir):
       mkdir Dir
 
 
@@ -154,20 +186,56 @@ proc findTestFiles (): seq[string] =
         result.add(lFilePath)
 
 
+proc setCC() =
+  let lGetCC = getCC()
+  if lGetCC.startsWith("zig"):
+    let lBuildCacheDir = getBuildCacheDir()
+    when defined(windows):
+      let lZigCC = lBuildCacheDir / "zigCC.bat"
+      lZigCC.writeFile("@pushd \"$1\"\r\n@zig cc %*\r\n@popd"%[lBuildCacheDir])
+    else:
+      let lZigCC = lBuildCacheDir / "zigCC.sh"
+      echo "Error!!! zig not already supported in this platfom."
+    switch "cc", "clang"
+    switch "clang.exe", lZigCC
+    switch "clang.linkerexe", lZigCC
+  else:
+    switch "cc", lGetCC
+  case lGetCC
+  of "gcc":
+    switch "passL", "-static"
+  else:
+    discard
+
+
 proc switchCommon () =
   let lNimVerbosity = getNimVerbosity()
-  if splitCmdLine().params == "release":
-    switch "stackTrace", "off"
-    switch "lineTrace", "off"
-    switch "assertions", "off"
-    switch "checks", "off"
+  switch "verbosity", lNimVerbosity
+  setCC()
+  switch "gc", getGC()
+  if ("release" == splitCmdLine().params):
     switch "define", "release"
     switch "define", "danger"
+    switch "define", "quick"
+    switch "assertions", "off"
+    switch "bound_checks", "off"
+    switch "embedsrc", "off"
+    switch "dead_code_elim", "on"
+    switch "debugger", "off"
+    switch "excessiveStackTrace", "off"
+    switch "field_checks", "off"
+    switch "line_dir", "off"
+    switch "linetrace", "off"
+    switch "nilchecks", "off"
+    switch "obj_checks", "off"
+    switch "opt", "speed"
+    switch "overflow_checks", "off"
+    switch "range_checks", "off"
+    switch "stacktrace", "off"
   else:
-    switch "embedsrc"
-  switch "verbosity", lNimVerbosity
+    switch "embedsrc", "on"
   switch "out", getBuildBinaryFilePath()
-  switch "nimcache", gcBuildCacheDir()
+  switch "nimcache", getBuildCacheDir()
   switch "app", "console"
   let lTargetCPU = getTargetCPU()
   case lTargetCPU
@@ -176,11 +244,11 @@ proc switchCommon () =
   else:
     switch "os", getTargetOS()
     switch "cpu", lTargetCPU
-    if (lNimVerbosity == "0"):
+    if ("0" == lNimVerbosity):
       switch "hints", "off"
     case hostOS
     of gcLinuxStr:
-      if ((hostCPU == gcAmd64) and (lTargetCPU == "i386")):
+      if ((hostCPU == gcAmd64) and ("i386" == lTargetCPU)):
         switch "passC", "-m32"
         switch "passL", "-m32"
     of gcWindowsStr:
@@ -188,7 +256,7 @@ proc switchCommon () =
 
 
 proc getTestBinaryFilePath (aSourcePath: string): string =
-  result = "$1_$2_$3$4"%[gcBuildTargetTestDir() / splitFile(aSourcePath).name,
+  result = "$1_$2_$3$4"%[getBuildTargetTestDir() / splitFile(aSourcePath).name,
                          getTargetOS(),
                          getTargetCPU(),
                          getBinaryFileExt()]
@@ -200,7 +268,7 @@ const
 
 proc getSourceMainFile (): string =
   let lMainFile = getSourceDir() / thisDir().getNameFromDir() & "." & gcNimFileExt
-  if system.fileExists(lMainFile):
+  if fileExists(lMainFile):
     result = lMainFile
   else:
     let lMessage = "Not found source [$1] in [$2]"%[lMainFile, thisDir()]
@@ -229,7 +297,7 @@ proc getLatestTagOfGitRepo(aRepoUrl: string): string =
 
 proc setCompile(aFilePath: string) =
   let lTargetCPU = getTargetCPU()
-  var lCommand = "compile"
+  var lCommand = "compileToC"
   case lTargetCPU
   of "js":
     lCommand = "js"
@@ -238,25 +306,27 @@ proc setCompile(aFilePath: string) =
   setCommand lCommand, aFilePath
 
 
-mode = if getNimVerbosity() == "0": ScriptMode.Silent else: ScriptMode.Verbose
+mode = if ("0" == getNimVerbosity()): ScriptMode.Silent else: ScriptMode.Verbose
 
 
 task Tasks, "list all tasks":
   selfExecWithDefaults("--listCmd")
 
 
-task Settings, "display alla settings":
+task Settings, "display all settings":
   let lInfos = """
   Interpreter : [$1]
   Version     : [$7]
   Source Dir  : [$4]
   Source Main : [$5]
-  Target OS   : [$2]
-  Target CPU  : [$3]
+  Target OS   : [$2] <- $$$10
+  Target CPU  : [$3] <- $$$11
+  Compiler CC : [$8] <- $$$12
+  Using GC    : [$9] <- $$$13
   Binary File : [$6]
   """
   echo lInfos%[if lcIsNimble: "Nimble" else: "Nim", getTargetOS(), getTargetCPU(
-    ), getSourceDir(), getSourceMainFile(), getBuildBinaryFilePath(), NimVersion]
+    ), getSourceDir(), getSourceMainFile(), getBuildBinaryFilePath(), NimVersion, getCC(), getGC(), gcTargetOSEnvVarName, gcTargetCpuEnvVarName, gcCCEnvVarName, gcGCEnvVarName]
 
 
 task CreateNew, "create a new project from " & "n" & "imTemplate":
@@ -317,12 +387,12 @@ task CreateNew, "create a new project from " & "n" & "imTemplate":
 
 
 task Clean, "clean the project":
-  if system.dirExists("nimcache"):
+  if dirExists("nimcache"):
     "nimcache".rmDir()
   let lFileToRemove = "$1.$2"%[thisDir().getNameFromDir(), ExeExt]
-  if system.fileExists(lFileToRemove):
+  if fileExists(lFileToRemove):
     lFileToRemove.rmFile()
-  if system.dirExists(gcBuildDir):
+  if dirExists(gcBuildDir):
     gcBuildDir.rmDir()
   else:
     echo "Nothing to clean"
@@ -331,7 +401,7 @@ task Clean, "clean the project":
 task CompileTest_OSLinux_OSWindows, "":
   switchCommon()
   switch "path", getSourceDir()
-  switch "nimcache", gcBuildCacheTestDir()
+  switch "nimcache", getBuildCacheTestDir()
   let lFilePath = lcTestAppFileNameEnvVarName.getEnv()
   switch "out", lFilePath.getTestBinaryFilePath()
   setCompile(lFilePath)
@@ -347,7 +417,7 @@ task CompileAndRunTest, "":
   let lFilePath = lcTestAppFileNameEnvVarName.getEnv()
   switchCommon()
   switch "path", getSourceDir()
-  switch "nimcache", gcBuildCacheTestDir()
+  switch "nimcache", getBuildCacheTestDir()
   switch "out", getTestBinaryFilePath(lFilePath)
   switch "putenv", "$1=\"$2\""%[gcApplicationToTestEnvVarName,
       getBuildBinaryFilePath()]
@@ -372,6 +442,7 @@ task CTest, "clean and test/s the project":
 
 
 task BuildBinary, "":
+  dependsOn Settings
   dependsOn NInstallDeps
   build_create()
   switchCommon()
@@ -379,13 +450,13 @@ task BuildBinary, "":
 
 
 task Build, "build the project":
-  if not system.fileExists(getBuildBinaryFilePath()):
+  if not fileExists(getBuildBinaryFilePath()):
     dependsOn BuildBinary
     if ("js" == getTargetCPU()):
       discard
     else:
-      if splitCmdLine().params == "release":
-        exec "strip " & getBuildBinaryFilePath()
+      if ("release" == splitCmdLine().params):
+        exec "strip --strip-all " & getBuildBinaryFilePath()
         exec "upx --best " & getBuildBinaryFilePath()
 
 
@@ -442,11 +513,11 @@ task NCompile, "compile using nimble":
 
 task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
   const
-    lEnvs = @[
-      @[gcTargetOSEnvVarName, gcLinuxStr, gcWindowsStr], 
-      @[gcTargetCpuEnvVarName, gcAmd64, "i386"], 
-      @[gcGCCVersionToUseEnvVarName, "4.8", "5", "6", "7", "8"],
-      @[gcNimBranchToUseEnvVarName, "version", "devel"]]
+    lEnvs = @[@[gcTargetOSEnvVarName, gcLinuxStr, gcWindowsStr],
+              @[gcTargetCpuEnvVarName, gcAmd64, "i386"],
+              @[gcGCCVersionToUseEnvVarName, "9"],
+              @[gcNimTagSelector, "version", "devel"],
+              @[gcGCEnvVarName, "refc", "arc"]]
     lEnvsLow = lEnvs.low
     lEnvsHigh = lEnvs.high
   var
@@ -454,11 +525,53 @@ task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
 
   proc lGetEnvValue(aResult: string, aIndex: int) =
     if aIndex <= lEnvsHigh:
-      let lHeader = aResult & " " & lEnvs[aIndex][0] & "="
+      var lHeader = aResult
+      lHeader.addSep(" ")
+      lHeader &= lEnvs[aIndex][0] & "="
       for lIndex in 1..lEnvs[aIndex].high:
         lGetEnvValue(lHeader & lEnvs[aIndex][lIndex], aIndex + 1)
     else:
-      lResult &= "- " & aResult & "\n"
+      lResult &= "- '" & aResult & "'\n"
 
   lGetEnvValue("", lEnvsLow)
   echo lResult
+
+
+task FormatSourceFiles, "Format source files using nimpretty":
+  if gorgeEx("nimpretty --version").exitCode != 0:
+    echo "Error nimpretty not present in path!!!"
+  else:
+    var lFilesToFormat: seq[string] = @[]
+    var lDirsToSearch = @["."]
+    const lcStartWith = "." & DirSep & "."
+    while lDirsToSearch.len > 0:
+      let lDirToSearch = lDirsToSearch.pop()
+      let lFilesToAdd = listFiles(lDirToSearch)
+      lFilesToFormat.add(lFilesToAdd.filter(
+        proc (aItem: string): bool = aItem.contains(".nim"))
+      )
+      let lDirsToAdd = listDirs(lDirToSearch)
+      lDirsToSearch.add(lDirsToAdd.filter(
+        proc (aItem: string): bool = not (aItem.startsWith(lcStartWith) or aItem.startsWith("." & DirSep & gcBuildDir)))
+      )
+    let lCurrentDir = getCurrentDir()
+    while lFilesToFormat.len > 0:
+      let lFileToFormat = lCurrentDir / lFilesToFormat.pop()
+      echo "Formatting [$1]"%[lFileToFormat]
+      let lExec = gorgeEx("nimpretty --indent:2 --maxLineLen:256 \"$1\""%[lFileToFormat])
+      if (lExec.exitCode != 0):
+        echo ("Error!!!")
+      if (lExec.output.len > 0):
+        echo lExec.output
+
+task CheckProject, "Project checking ...":
+  dependsOn Settings
+  dependsOn NInstallDeps
+  build_create()
+  switchCommon()
+  setCommand "check", getSourceMainFile()
+
+
+task Lint, "Project linting ...":
+  dependsOn CheckProject
+  dependsOn FormatSourceFiles
