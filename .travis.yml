@@ -30,18 +30,15 @@ env:
     - "NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=arc"
     - "NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc"
     - "NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc"
-
-jobs:
-  allow_failures:
-    env:
-      - "NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc"
-      - "NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc"
-      - "NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc"
-      - "NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc"
-      - "NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc"
-      - "NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc"
-      - "NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc"
-      - "NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc"
+    allow_failures:
+      - env: "NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9  NIM_GC=refc"
+      - env: "NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc"
+      - env: "NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc"
+      - env: "NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc"
+      - env: "NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc"
+      - env: "NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc"
+      - env: "NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc"
+      - env: "NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc"
     
 script:
   - ./scripts/linux/travis.sh
