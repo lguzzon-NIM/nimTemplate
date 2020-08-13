@@ -141,7 +141,7 @@ readonly lNimURL=$(
     awk -F"/" '{print $3}' |
     grep "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]" |
     grep "$NIM_TAG_SELECTOR" |
-    tail -20 |
+    tail -2000 |
     tac |
     while IFS= read -r line; do
       lURL="https://github.com/nim-lang/nightlies/releases/tag/${line}"
