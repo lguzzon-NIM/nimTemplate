@@ -4,10 +4,10 @@ export CHOOSENIM_NO_ANALYTICS=1
 export GITBIN=$HOME/.choosenim/git/bin
 export PATH=$HOME/.nimble/bin:$GITBIN:$PATH
 
-if ! type -P choosenim &> /dev/null; then
+if ! type -P choosenim &>/dev/null; then
   echo "Fresh install"
   mkdir -p $GITBIN
-  if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
+  if [[ $TRAVIS_OS_NAME == "windows" ]]; then
     export EXT=.exe
     # Setup git outside "Program Files", space breaks cmake sh.exe
     cd $GITBIN/..
@@ -17,12 +17,12 @@ if ! type -P choosenim &> /dev/null; then
   fi
 
   export CHOOSENIM_CHOOSE_VERSION="$NIM_TAG_SELECTOR --latest"
-  curl https://nim-lang.org/choosenim/init.sh -sSf > init.sh
+  curl https://nim-lang.org/choosenim/init.sh -sSf >init.sh
   sh init.sh -y
   cp $HOME/.nimble/bin/choosenim$EXT $GITBIN/.
 
   # Copy DLLs for choosenim
-  if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
+  if [[ $TRAVIS_OS_NAME == "windows" ]]; then
     cp $HOME/.nimble/bin/*.dll $GITBIN/.
   fi
 else
@@ -32,7 +32,7 @@ else
   choosenim $NIM_TAG_SELECTOR
 fi
 
-if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+if [[ $TRAVIS_OS_NAME == "osx" ]]; then
   # Work around https://github.com/nim-lang/Nim/issues/12337 fixed in 1.0+
   ulimit -n 8192
 fi

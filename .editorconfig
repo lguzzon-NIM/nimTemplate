@@ -11,10 +11,6 @@ insert_final_newline = true
 indent_style = space
 indent_size = 2
 
-[**.nimInc]
-indent_style = space
-indent_size = 2
-
 [**.pas]
 indent_style = space
 indent_size = 2

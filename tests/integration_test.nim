@@ -11,7 +11,7 @@ else:
   # import nimTemplate
   import nimTemplate/consts
 
-  include "../scripts/nim/scriptsEnvVarNames.nimInc"
+  include "../scripts/nim/scriptsEnvVarNames.nim"
 
   suite "integration-test suite":
     test "getMessage excecuting the app":
