@@ -68,6 +68,7 @@ proc getAbi(): string =
       "musl"
 
 proc getGC(): string =
+  # https://nim-lang.org/docs/gc.html
   # refc|markAndSweep|boehm|go|none|regions
   # arc|orc
   if existsEnv(gcGCEnvVarName):
