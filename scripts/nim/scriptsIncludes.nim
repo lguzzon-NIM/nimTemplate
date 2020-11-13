@@ -35,7 +35,7 @@ const
   # switch "gc", "boehm" - zig ok
   # switch "gc", "regions" - zig ok
   # switch "gc", "arc" ???
-  # switch "gc", "arc" #???
+  # switch "gc", "orc" ???
   gcGCDefault = "refc"
 
 proc getTargetOS (): string =
@@ -475,6 +475,8 @@ task CompileAndRunTest_OSLinux_OSWindows, "":
 task CompileAndRunTest, "":
   let lFilePath = lcTestAppFileNameEnvVarName.getEnv()
   switchCommon()
+  if (gcLinuxStr == getTargetOS()):
+    switch "threads","on"
   switch "path", getSourceDir()
   switch "nimcache", getBuildCacheTestDir()
   switch "out", getTestBinaryFilePath(lFilePath)
@@ -490,7 +492,7 @@ task Test, "test/s the project":
     var lCommandToExec = "CompileAndRunTest"
     case hostOS
     of gcLinuxStr:
-      if (getTargetOS() == gcWindowsStr):
+      if (gcWindowsStr == getTargetOS()):
         lCommandToExec = "CompileAndRunTest_OSLinux_OSWindows"
     selfExecWithDefaults("\"--putenv:$1=$2\" $3"%[lcTestAppFileNameEnvVarName,
         lFilePath, lCommandToExec])
