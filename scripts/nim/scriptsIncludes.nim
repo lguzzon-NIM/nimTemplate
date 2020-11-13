@@ -3,7 +3,7 @@ import strutils
 import sequtils
 from os import `/`, splitFile, ExeExt, DirSep
 
-include "scriptsEnvVarNames.nimInc"
+include "scriptsEnvVarNames.nim"
 
 
 const
@@ -105,7 +105,7 @@ proc getOsCpuCompilerName(): string =
   of "js":
     result = "$1"%[lTargetCPU]
   else:
-    let lCC=getCC()
+    let lCC = getCC()
     if gcZIG == lCC:
       result = "$1-$2-$3-$4-$5"%[getTargetOS(), lTargetCPU, getABI(), lCC, getGC()]
     else:
@@ -547,7 +547,7 @@ task CRun, "clean and run the project ex: nim --putenv:runParams=\"<Parameters>\
 
 
 task UpdateScript, "update this script to latest release in " & "n" & "imTemplate [uses svn on github]":
-  let lFromScript = "scripts/nim/scriptsIncludes.nimInc"
+  let lFromScript = "scripts/nim/scriptsIncludes.nim"
   lFromScript.cpFile(lFromScript & "_OLD")
   exec("svn export --force \"$1/tags/$2/$3\" \"$3\""%[gcRepoURL,
       getLatestTagOfGitRepo(gcRepoURL), lFromScript])
@@ -596,7 +596,7 @@ task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
   echo lResult
 
 
-task FormatSourceFiles, "Format source files using nimpretty":
+task FormatSourceFiles, "format source files using nimpretty":
   if gorgeEx("nimpretty --version").exitCode != 0:
     echo "Error nimpretty not present in path!!!"
   else:
@@ -624,7 +624,7 @@ task FormatSourceFiles, "Format source files using nimpretty":
         echo lExec.output
 
 
-task FormatShfmtFiles, "Format shfmt files":
+task FormatShfmtFiles, "format shfmt files":
   if gorgeEx("shfmt -version").exitCode != 0:
     echo "Error shfmt not present in path!!!"
   else:
@@ -646,7 +646,7 @@ task FormatShfmtFiles, "Format shfmt files":
           echo lExec.output
 
 
-task FormatYamlFiles, "Format yaml files using yq":
+task FormatYamlFiles, "format yaml files using yq":
   if gorgeEx("yq --version").exitCode != 0:
     echo "Error yq not present in path!!!"
   else:
@@ -674,7 +674,7 @@ task FormatYamlFiles, "Format yaml files using yq":
         echo lExec.output
 
 
-task CheckProject, "Project checking ...":
+task CheckProject, "project checking ...":
   dependsOn Settings
   dependsOn NInstallDeps
   build_create()
@@ -682,7 +682,7 @@ task CheckProject, "Project checking ...":
   setCommand "check", getSourceMainFile()
 
 
-task Lint, "Project linting ...":
+task Lint, "project linting ...":
   dependsOn CheckProject
   dependsOn FormatSourceFiles
   dependsOn FormatShfmtFiles
