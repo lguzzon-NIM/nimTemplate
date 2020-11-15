@@ -3,7 +3,7 @@ set -e
 set -o pipefail
 set -o xtrace
 
-readonly lUserName=${1:-Luca Guzzon}
+readonly lUserName=${1:-lguzzon}
 readonly lUserMail=${2:-luca.guzzon@gmail.com}
 
 git config --global user.name "${lUserName}"
