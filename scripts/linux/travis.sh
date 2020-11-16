@@ -18,10 +18,9 @@ function getScriptDir() {
   readlink -f "${lScriptPath%/*}"
 }
 
-readonly current_dir=$(pwd)
-
-readonly script_path=$(readlink -f "${0}")
-readonly script_dir=$(getScriptDir "${script_path}")
+# readonly current_dir=$(pwd)
+# readonly script_path=$(readlink -f "${0}")
+# readonly script_dir=$(getScriptDir "${script_path}")
 
 readonly sudoCmd="sudo -E"
 readonly aptGetCmd="${sudoCmd} DEBIAN_FRONTEND=noninteractive apt-get -y -qq"
@@ -125,10 +124,12 @@ readonly lUPXVersion=$(
 curl -z upx.txz -o upx.txz -L "https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz"
 tar -xvf upx.txz
 export PATH
+# shellcheck disable=SC2123
 PATH="$(pwd)/upx-${lUPXVersion}-amd64_linux${PATH:+:$PATH}" || true
 
 #Install Nim
-
+# shellcheck disable=SC2046
+# shellcheck disable=SC1090
 source $(dirname "$0")/travisNim.sh
 
 nim --version
