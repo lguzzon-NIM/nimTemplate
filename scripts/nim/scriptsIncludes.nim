@@ -111,7 +111,7 @@ proc getOsCpuCompilerName(): string =
     else:
       result = "$1-$2-$3-$4"%[getTargetOS(), lTargetCPU, lCC, getGC()]
   if "release" == splitCmdLine().params:
-    result = "$1_release"%[result]
+    result = "$1-release"%[result]
 
 
 proc getBuildCacheDir (): string =
@@ -249,6 +249,9 @@ popd >/dev/null
     switch "passL", "-static"
   of gcZIG:
     switch "passL", "-static"
+    if (gcWindowsStr == getTargetOS()):
+      switch "clang.options.linker", ""
+      switch "clang.cpp.options.linker", ""
   else:
     discard
 
@@ -476,7 +479,7 @@ task CompileAndRunTest, "":
   let lFilePath = lcTestAppFileNameEnvVarName.getEnv()
   switchCommon()
   if (gcLinuxStr == getTargetOS()):
-    switch "threads","on"
+    switch "threads", "on"
   switch "path", getSourceDir()
   switch "nimcache", getBuildCacheTestDir()
   switch "out", getTestBinaryFilePath(lFilePath)
