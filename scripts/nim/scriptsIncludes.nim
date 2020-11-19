@@ -249,6 +249,9 @@ popd >/dev/null
     switch "passL", "-static"
   of gcZIG:
     switch "passL", "-static"
+    if (gcWindowsStr == getTargetOS()):
+      switch "clang.options.linker", ""
+      switch "clang.cpp.options.linker", ""
   else:
     discard
 
