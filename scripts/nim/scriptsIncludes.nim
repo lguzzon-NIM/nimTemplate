@@ -38,6 +38,9 @@ const
   # switch "gc", "orc" ???
   gcGCDefault = "refc"
 
+var gReleaseOption = false
+
+
 proc getTargetOS (): string =
   if existsEnv(gcTargetOSEnvVarName):
     getEnv(gcTargetOSEnvVarName)
@@ -99,6 +102,16 @@ proc splitCmdLine (): tuple[options, command, params: string] =
   result.params = lResult.strip()
 
 
+proc getReleaseOption(): bool =
+  gReleaseOption = gReleaseOption or ("release" == splitCmdLine().params)
+  result = gReleaseOption
+
+
+proc setReleaseOption(aValue: bool): bool =
+  gReleaseOption = aValue
+  result = gReleaseOption
+
+  
 proc getOsCpuCompilerName(): string =
   let lTargetCPU = getTargetCPU()
   case lTargetCPU
@@ -110,7 +123,7 @@ proc getOsCpuCompilerName(): string =
       result = "$1-$2-$3-$4-$5"%[getTargetOS(), lTargetCPU, getABI(), lCC, getGC()]
     else:
       result = "$1-$2-$3-$4"%[getTargetOS(), lTargetCPU, lCC, getGC()]
-  if ("release" == splitCmdLine().params):
+  if getReleaseOption():
     result = "$1-release"%[result]
 
 
@@ -246,9 +259,9 @@ popd >/dev/null
     switch "cc", lCC
   case lCC
   of gcGCC:
-    switch "passL", "-static"
+    switch "passL", "-static -no-pie"
   of gcZIG:
-    switch "passL", "-static"
+    switch "passL", "-static -no-pie"
     if (gcWindowsStr == getTargetOS()):
       switch "clang.options.linker", ""
       switch "clang.cpp.options.linker", ""
@@ -261,7 +274,7 @@ proc switchCommon () =
   switch "verbosity", lNimVerbosity
   setCC()
   switch "gc", getGC()
-  if ("release" == splitCmdLine().params):
+  if getReleaseOption():
     switch "define", "release"
     switch "define", "danger"
     switch "define", "quick"
@@ -522,7 +535,7 @@ task Build, "build the project":
     if ("js" == getTargetCPU()):
       discard
     else:
-      if ("release" == splitCmdLine().params):
+      if getReleaseOption():
         exec "strip --strip-all " & getBuildBinaryFilePath()
         exec "upx --best " & getBuildBinaryFilePath()
 
@@ -532,11 +545,18 @@ task CBuild, "clean and build the project":
 
 
 task BuildToDeploy, "build the project ready to deploy":
-  selfExecWithDefaults("--passC:-O4 --passL:-static Test release")
+  var lDeploy = ""
+  let lCC = getCC()
+  if (gcZIG == lCC):
+    lDeploy &= "\"--clang.options.speed=" & get("clang.options.speed").replace("-O3", "-O4") & "\" "
+  else:
+    lDeploy &= "\"--gcc.options.speed=" & get("gcc.options.speed").replace("-O3", "-O4") & "\" "
+  lDeploy &= "Test release"
+  selfExecWithDefaults(lDeploy)
 
 
 task CBuildToDeploy, "clean and build the project ready to deploy":
-  selfExecWithDefaults("--passC:-O4 --passL:-static CTest release")
+  dependsOn Clean BuildToDeploy
 
 
 task Run, "run the project ex: nim --putenv:runParams=\"<Parameters>\" run":
@@ -687,14 +707,11 @@ task FormatYamlFiles, "format yaml files using yq":
 
 
 task CheckProject, "project checking ...":
-  dependsOn Settings
-  dependsOn NInstallDeps
+  dependsOn Settings NInstallDeps
   build_create()
   switchCommon()
   setCommand "check", getSourceMainFile()
 
 
 task Lint, "project linting ...":
-  dependsOn CheckProject
-  dependsOn FormatSourceFiles
-  dependsOn FormatShfmtFiles
+  dependsOn CheckProject FormatSourceFiles FormatShfmtFiles
