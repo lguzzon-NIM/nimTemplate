@@ -10,6 +10,7 @@ const
   gcWindowsStr = "windows"
   gcLinuxStr = "linux"
   gcAmd64 = "amd64"
+  gcArm64 = "arm64"
   gcI386 = "i386"
 
   gcNimFileExt = "nim"
@@ -111,7 +112,7 @@ proc setReleaseOption(aValue: bool): bool =
   gReleaseOption = aValue
   result = gReleaseOption
 
-  
+
 proc getOsCpuCompilerName(): string =
   let lTargetCPU = getTargetCPU()
   case lTargetCPU
@@ -223,6 +224,8 @@ proc getZigTarget(): string =
   case lTargetCPU:
   of gcAmd64:
     lTargetCPU = "x86_64"
+  of gcArm64:
+    lTargetCPU = "aarch64"
   else:
     discard
   "$1-$2-$3"%[lTargetCPU, getTargetOS(), getAbi()]
