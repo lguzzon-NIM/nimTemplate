@@ -15,7 +15,7 @@ RUN lUPXVersion=$( \
         | tail -1 \
         | sed "s/v//g" \
     ) \
-    ;  curl -z upx.txz -o upx.txz -L "https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz" \
+    ;  curl -o upx.txz -sSL "https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz" \
     && tar -xvf upx.txz \
     && rm upx.txz || true \
     && rm -rf "${HOME}/.upx" || true \
@@ -25,7 +25,7 @@ RUN lUPXVersion=$( \
     && upx --version
 
 # Install zig
-RUN curl -z zig.tar.xz -o zig.tar.xz -L $(curl -slL "https://ziglang.org/download/index.json" \
+RUN curl -o zig.tar.xz -sSL $(curl -slL "https://ziglang.org/download/index.json" \
     |  jq -r ".master[\"x86_64-linux\"].tarball") \
     && tar -xvf zig.tar.xz \
     && rm zig.tar.xz || true \

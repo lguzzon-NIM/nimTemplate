@@ -1,7 +1,8 @@
 #!/bin/bash
 
-(hash curl || sudo apt -y install curl) &&
-    (hash git || sudo apt -y install git)
+(hash curl 2>/dev/null || sudo apt -y install curl) &&
+    (hash git 2>/dev/null || sudo apt -y install git) && 
+    (hash xz 2>/dev/null || sudo apt -y install xz-utils) 
 readonly lUPXVersion=$(git ls-remote --tags "https://github.com/upx/upx.git" |
     awk '{print $2}' |
     grep -v '{}' |
@@ -16,12 +17,15 @@ case ${lLinuxArchitecture} in
 aarch64*)
     lArchitecture="arm64"
     ;;
+x86_64*)
+    lArchitecture="amd64"
+    ;;
 esac
 echo ${lArchitecture}
 
 readonly lUpxUrl="https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-${lArchitecture}_linux.tar.xz"
 echo "${lUpxUrl}"
-curl -z upx.tar.xz -o upx.tar.xz -L "${lUpxUrl}" &&
+curl -o upx.tar.xz -sSL "${lUpxUrl}" &&
     tar -xvf upx.tar.xz &&
     rm upx.tar.xz || true &&
     rm -rf "${HOME}/.upx" || true &&

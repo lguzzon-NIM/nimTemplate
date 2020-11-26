@@ -121,7 +121,7 @@ readonly lUPXVersion=$(
     | tail -1 \
     | sed "s/v//g"
 )
-curl -z upx.txz -o upx.txz -L "https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz"
+curl -o upx.txz -sSL "https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz"
 tar -xvf upx.txz
 export PATH
 # shellcheck disable=SC2123

@@ -11,7 +11,7 @@ if ! type -P choosenim &>/dev/null; then
     export EXT=.exe
     # Setup git outside "Program Files", space breaks cmake sh.exe
     cd $GITBIN/..
-    curl -L -s "https://github.com/git-for-windows/git/releases/download/v2.23.0.windows.1/PortableGit-2.23.0-64-bit.7z.exe" -o portablegit.exe
+    curl -sSL -s "https://github.com/git-for-windows/git/releases/download/v2.23.0.windows.1/PortableGit-2.23.0-64-bit.7z.exe" -o portablegit.exe
     7z x -y -bd portablegit.exe
     cd -
   fi
