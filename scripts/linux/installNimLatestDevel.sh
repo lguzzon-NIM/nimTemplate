@@ -1,7 +1,7 @@
 #!/bin/bash
 
 readonly lLinuxArchitecture=$(uname -m)
-echo "${lLinuxArchitecture}"
+echo "lLinuxArchitecture ${lLinuxArchitecture}"
 lArchitecture=${lLinuxArchitecture}
 case ${lLinuxArchitecture} in
 aarch64*)
@@ -11,7 +11,7 @@ x86_64*)
     lArchitecture="x64"
     ;;
 esac
-echo ${lArchitecture}
+echo "lArchitecture ${lArchitecture}"
 
 (hash curl 2>/dev/null || sudo apt -y install curl) &&
     (hash jq 2>/dev/null || sudo apt -y install jq) &&
