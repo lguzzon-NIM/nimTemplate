@@ -27,20 +27,22 @@ case $1 in
     ;;
 esac
 
+APP_PATH="$APPS_PATH/nim"
+BASHRC_PATH="${HOME}/.bashrc"
 (hash curl 2>/dev/null || sudo apt -y install curl) \
   && (hash jq 2>/dev/null || sudo apt -y install jq) \
   && curl -o nim.tar.xz -sSL "${TOOL_URL}" \
   && (rm -rf "$(dirname "$(dirname "$(which nim)")")" 2>/dev/null \
-    || rm -rf "$APPS_PATH/nim" 2>/dev/null \
+    || rm -rf "$APP_PATH" 2>/dev/null \
     || true) \
   && tar -xvf nim.tar.xz \
   && rm nim.tar.xz || true \
-  && mv nim-* "$APPS_PATH/nim" \
-  && export PATH="$APPS_PATH/nim/bin${PATH:+:$PATH}" \
-  && sed "/### +++ ${TOOL_NAME} +++ ###/,/### --- ${TOOL_NAME} --- ###/d" -i "${HOME}/.bashrc" \
+  && mv nim-* "$APP_PATH" \
+  && export PATH="$APP_PATH/bin${PATH:+:$PATH}" \
+  && sed "/### +++ ${TOOL_NAME} +++ ###/,/### --- ${TOOL_NAME} --- ###/d" -i "$BASHRC_PATH" \
   && {
     echo "### +++ ${TOOL_NAME} +++ ###"
-    echo "[ -d \"$APPS_PATH/nim/bin\" ] && export PATH=\"$APPS_PATH/nim/bin\${PATH:+:\$PATH}\""
+    echo "[ -d \"$APP_PATH/bin\" ] && export PATH=\"$APP_PATH/bin\${PATH:+:\$PATH}\""
     echo "### --- ${TOOL_NAME} --- ###"
-  } >>"${HOME}/.bashrc" \
+  } >>"$BASHRC_PATH" \
   && nim --version
