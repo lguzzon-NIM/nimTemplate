@@ -3,8 +3,13 @@ set -e
 set -o pipefail
 set -o xtrace
 
-readonly lUserName=${1:-lguzzon}
-readonly lUserMail=${2:-luca.guzzon@gmail.com}
+lUserName=$(git config --global user.name)
+lUserName=${1:-$lUserName}
+lUserName=${lUserName:-Luca Guzzon}
+
+lUserMail=$(git config --global user.email)
+lUserMail=${2:-$lUserMail}
+lUserMail=${lUserMail:-luca.guzzon@gmail.com}
 
 git config --global user.name "${lUserName}"
 git config --global user.email "${lUserMail}"
