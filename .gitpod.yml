@@ -10,11 +10,4 @@ tasks:
 
 vscode:
   extensions:
-    - CoenraadS.bracket-pair-colorizer@1.0.61:+jQByqALW0iXkhpd2yzYzQ==
-    - dracula-theme.theme-dracula@2.22.1:acEEGtphPo3sp9+wXQiSyw==
-    - foxundermoon.shell-format@7.0.1:dJqOSN173jVh12b+ScTqtw==
-    - mads-hartmann.bash-ide-vscode@1.11.0:VLESO/tPCjrfzzLcJy83aQ==
-    - ms-vscode.sublime-keybindings@4.0.6:ydCkBZLUuZ81fpYBYq/v6g==
-    - nimsaem.nimvscode@0.1.10:VSqRP4riQfG8727UZn1mmw==
-    - oderwat.indent-rainbow@7.4.0:fDVCkGVYd1R2lfcs1tHk+Q==
-    - timonwong.shellcheck@0.12.1:xUC3REt9ILR+PvBe48d8Rw==
+    - nimsaem.nimvscode@0.1.16:XfdE68tzY29YSyfnbyJghg==
