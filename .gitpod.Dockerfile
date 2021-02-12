@@ -1,11 +1,13 @@
 FROM gitpod/workspace-full
 
+RUN echo $(whoami)
+RUN echo $HOME
 RUN mkdir -p "${HOME}/gitpodDockerFileScripts"
 COPY scripts/linux/installUpx.sh "${HOME}/gitpodDockerFileScripts"
 COPY scripts/linux/installNim.sh "${HOME}/gitpodDockerFileScripts"
 COPY scripts/linux/installZig.sh "${HOME}/gitpodDockerFileScripts"
-WORKDIR "${HOME}/gitpodDockerFileScripts"
-RUN chmod +x *.sh
-RUN ./installUpx.sh
-RUN ./installNim.sh
-RUN ./installZig.sh
+RUN ls -lah "${HOME}/gitpodDockerFileScripts"
+RUN chmod +x "${HOME}/gitpodDockerFileScripts/*.sh"
+RUN "${HOME}/gitpodDockerFileScripts/installUpx.sh"
+RUN "${HOME}/gitpodDockerFileScripts/installNim.sh"
+RUN "${HOME}/gitpodDockerFileScripts/installZig.sh"
