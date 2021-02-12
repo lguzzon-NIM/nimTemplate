@@ -1,35 +1,11 @@
 FROM gitpod/workspace-full
 
-# Install nim
-RUN curl https://nim-lang.org/choosenim/init.sh -sSf | CHOOSE_VERSION=devel sh -s -- -y \
-    && export PATH="$HOME/.nimble/bin${PATH:+:$PATH}" \
-    && echo "export PATH=\"\$HOME/.nimble/bin\${PATH:+:\$PATH}\"" >> "${HOME}/.bashrc" \
-    && nim --version
-
-#Install upx
-RUN lUPXVersion=$( \
-        git ls-remote --tags "https://github.com/upx/upx.git" \
-        | awk '{print $2}' \
-        | grep -v '{}' \
-        | awk -F"/" '{print $3}' \
-        | tail -1 \
-        | sed "s/v//g" \
-    ) \
-    ;  curl -o upx.txz -sSL "https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz" \
-    && tar -xvf upx.txz \
-    && rm upx.txz || true \
-    && rm -rf "${HOME}/.upx" || true \
-    && mv "upx-${lUPXVersion}-amd64_linux" "${HOME}/.upx" \
-    && export PATH="$HOME/.upx${PATH:+:$PATH}" \
-    && echo "export PATH=\"\$HOME/.upx\${PATH:+:\$PATH}\"" >> "${HOME}/.bashrc" \
-    && upx --version
-
-# Install zig
-RUN curl -o zig.tar.xz -sSL $(curl -slL "https://ziglang.org/download/index.json" \
-    |  jq -r ".master[\"x86_64-linux\"].tarball") \
-    && tar -xvf zig.tar.xz \
-    && rm zig.tar.xz || true \
-    && mv zig-linux-x86_64* "$HOME/.zig" \
-    && export PATH="$HOME/.zig${PATH:+:$PATH}" \
-    && echo "export PATH=\"\$HOME/.zig\${PATH:+:\$PATH}\"" >> "${HOME}/.bashrc" \
-    && zig version
+RUN mkdir -p "${HOME}/gitpodDockerFileScripts"
+COPY scripts/linux/installUpx.sh "${HOME}/gitpodDockerFileScripts"
+COPY scripts/linux/installNim.sh "${HOME}/gitpodDockerFileScripts"
+COPY scripts/linux/installZig.sh "${HOME}/gitpodDockerFileScripts"
+WORKDIR "${HOME}/gitpodDockerFileScripts"
+RUN chmod +x *.sh
+RUN ./installUpx.sh
+RUN ./installNim.sh
+RUN ./installZig.sh
