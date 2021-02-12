@@ -13,7 +13,7 @@ RUN ls -lah "/home/gitpod/gitpodDockerFileScripts"
 RUN chown gitpod:gitpod "/home/gitpod/gitpodDockerFileScripts/installUpx.sh"
 RUN chmod +x "/home/gitpod/gitpodDockerFileScripts/installUpx.sh"
 RUN chown gitpod:gitpod "/home/gitpod/gitpodDockerFileScripts/installNim.sh"
-RUN chmod +x "/home/gitpod/gitpodDockerFileScripts/installNim.sh.sh"
+RUN chmod +x "/home/gitpod/gitpodDockerFileScripts/installNim.sh"
 RUN chown gitpod:gitpod "/home/gitpod/gitpodDockerFileScripts/installZig.sh"
 RUN chmod +x "/home/gitpod/gitpodDockerFileScripts/installZig.sh"
 
