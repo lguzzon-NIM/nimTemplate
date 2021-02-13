@@ -121,7 +121,8 @@ proc getOsCpuCompilerName(): string =
   else:
     let lCC = getCC()
     if (gcZIG == lCC):
-      result = "$1-$2-$3-$4-$5"%[getTargetOS(), lTargetCPU, getABI(), lCC, getGC()]
+      result = "$1-$2-$3-$4-$5"%[getTargetOS(), lTargetCPU, getABI(), lCC,
+          getGC()]
     else:
       result = "$1-$2-$3-$4"%[getTargetOS(), lTargetCPU, lCC, getGC()]
   if getReleaseOption():
@@ -525,8 +526,7 @@ task CTest, "clean and test/s the project":
 
 
 task BuildBinary, "":
-  dependsOn Settings
-  dependsOn NInstallDeps
+  dependsOn Settings NInstallDeps
   build_create()
   switchCommon()
   setCompile(getSourceMainFile())
@@ -551,9 +551,11 @@ task BuildToDeploy, "build the project ready to deploy":
   var lDeploy = ""
   let lCC = getCC()
   if (gcZIG == lCC):
-    lDeploy &= "\"--clang.options.speed=" & get("clang.options.speed").replace("-O3", "-O4") & "\" "
+    lDeploy &= "\"--clang.options.speed=" & get("clang.options.speed").replace(
+        "-O3", "-O4") & "\" "
   else:
-    lDeploy &= "\"--gcc.options.speed=" & get("gcc.options.speed").replace("-O3", "-O4") & "\" "
+    lDeploy &= "\"--gcc.options.speed=" & get("gcc.options.speed").replace(
+        "-O3", "-O4") & "\" "
   lDeploy &= "Test release"
   selfExecWithDefaults(lDeploy)
 
@@ -646,7 +648,8 @@ task FormatSourceFiles, "format source files using nimpretty":
       )
       let lDirsToAdd = listDirs(lDirToSearch)
       lDirsToSearch.add(lDirsToAdd.filter(
-        proc (aItem: string): bool = not (aItem.startsWith(lcStartWith) or aItem.startsWith("." & DirSep & gcBuildDir)))
+        proc (aItem: string): bool = not (aItem.startsWith(lcStartWith) or
+            aItem.startsWith("." & DirSep & gcBuildDir)))
       )
     let lCurrentDir = getCurrentDir()
     while lFilesToFormat.len > 0:
@@ -654,7 +657,7 @@ task FormatSourceFiles, "format source files using nimpretty":
       echo "Formatting [$1]"%[lFileToFormat]
       let lExec = gorgeEx("nimpretty --indent:2 --maxLineLen:256 \"$1\""%[lFileToFormat])
       if (lExec.exitCode != 0):
-        echo ("Error!!!")
+        echo "Error!!!"
       if (lExec.output.len > 0):
         echo lExec.output
 
@@ -666,7 +669,7 @@ task FormatShfmtFiles, "format shfmt files":
     let lCurrentDir = getCurrentDir()
     let lExec = gorgeEx("shfmt -w -bn -ci -i 2 -f -s \"$1\""%[lCurrentDir])
     if (lExec.exitCode != 0):
-      echo ("Error!!!")
+      echo "Error!!!"
     if (lExec.output.len > 0):
       var lFilesToFormat = lExec.output.splitLines(false).filter(
         proc (aItem: string): bool = aItem != ""
@@ -676,7 +679,7 @@ task FormatShfmtFiles, "format shfmt files":
         echo "Formatting [$1]"%[lFileToFormat]
         let lExec = gorgeEx("shfmt -w -bn -ci -i 2 -s \"$1\""%[lFileToFormat])
         if (lExec.exitCode != 0):
-          echo ("Error!!!")
+          echo "Error!!!"
         if (lExec.output.len > 0):
           echo lExec.output
 
@@ -696,7 +699,8 @@ task FormatYamlFiles, "format yaml files using yq":
       )
       let lDirsToAdd = listDirs(lDirToSearch)
       lDirsToSearch.add(lDirsToAdd.filter(
-        proc (aItem: string): bool = not (aItem.startsWith(lcStartWith) or aItem.startsWith("." & DirSep & gcBuildDir)))
+        proc (aItem: string): bool = not (aItem.startsWith(lcStartWith) or
+            aItem.startsWith("." & DirSep & gcBuildDir)))
       )
     let lCurrentDir = getCurrentDir()
     while lFilesToFormat.len > 0:
@@ -704,7 +708,7 @@ task FormatYamlFiles, "format yaml files using yq":
       echo "Formatting [$1]"%[lFileToFormat]
       let lExec = gorgeEx("yq r \"$1\" -P -I4 > yq.tmp && mv yq.tmp \"$1\""%[lFileToFormat])
       if (lExec.exitCode != 0):
-        echo ("Error!!!")
+        echo "Error!!!"
       if (lExec.output.len > 0):
         echo lExec.output
 
