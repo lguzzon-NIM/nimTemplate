@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 export APPS_DIR_NAME=APPs
 export APPS_PATH="${HOME}/${APPS_DIR_NAME}"

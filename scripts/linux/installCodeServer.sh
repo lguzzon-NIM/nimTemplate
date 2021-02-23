@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 export APPS_DIR_NAME=APPs
 export APPS_PATH="${HOME}/${APPS_DIR_NAME}"
@@ -6,7 +6,7 @@ export APPS_PATH="${HOME}/${APPS_DIR_NAME}"
 echo "APPS_PATH [${APPS_PATH}]"
 mkdir -p "${APPS_PATH}"
 
-# curl -fsSL https://code-server.dev/install.sh | sh -s -- --prefix "${APPS_PATH}" --dry-run 
+# curl -fsSL https://code-server.dev/install.sh | sh -s -- --prefix "${APPS_PATH}" --dry-run
 curl -fsSL https://code-server.dev/install.sh | sh -s -- --prefix "${APPS_PATH}"
 which code-server && ls -la "$(which code-server)"
 cd "${HOME}" || exit 1

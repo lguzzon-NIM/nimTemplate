@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 export APPS_DIR_NAME=APPs
 export APPS_PATH="${HOME}/${APPS_DIR_NAME}"
@@ -32,10 +32,10 @@ TOOL_NAME="ZIG"
   && rm zig.tar.xz || true \
   && mv zig-linux-"${lArchitecture}"* "$APPS_PATH/zig" \
   && export PATH="$APPS_PATH/zig${PATH:+:$PATH}" \
-    && sed "/### +++ ${TOOL_NAME} +++ ###/,/### --- ${TOOL_NAME} --- ###/d" -i "${HOME}/.bashrc" \
+  && sed "/### +++ ${TOOL_NAME} +++ ###/,/### --- ${TOOL_NAME} --- ###/d" -i "${HOME}/.bashrc" \
   && {
     echo "### +++ ${TOOL_NAME} +++ ###"
     echo "[ -d \"$APPS_PATH/zig\" ] && export PATH=\"$APPS_PATH/zig\${PATH:+:\$PATH}\""
     echo "### --- ${TOOL_NAME} --- ###"
   } >>"${HOME}/.bashrc" \
-&& zig version
+  && zig version

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 set -o pipefail
 set -o xtrace
@@ -7,12 +7,12 @@ readonly lShellCheckOS=$(uname -s)
 readonly lOS=${lShellCheckOS,,}
 echo "${lOS}"
 
-readonly lShellCheckVersion=$(git ls-remote --tags "https://github.com/koalaman/shellcheck.git" |
-    awk '{print $2}' |
-    grep -v '{}' |
-    awk -F"/" '{print $3}' |
-    tail -1 |
-    sed "s/v//g")
+readonly lShellCheckVersion=$(git ls-remote --tags "https://github.com/koalaman/shellcheck.git" \
+  | awk '{print $2}' \
+  | grep -v '{}' \
+  | awk -F"/" '{print $3}' \
+  | tail -1 \
+  | sed "s/v//g")
 echo "${lShellCheckVersion}"
 readonly lLinuxArchitecture=$(uname -m)
 echo "${lLinuxArchitecture}"

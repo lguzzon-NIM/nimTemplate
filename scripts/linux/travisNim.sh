@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/usr/bin/env bash
 
 export CHOOSENIM_NO_ANALYTICS=1
 export GITBIN=$HOME/.choosenim/git/bin

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 (hash curl 2>/dev/null || sudo apt -y install curl) \
   && (hash git 2>/dev/null || sudo apt -y install git) \
