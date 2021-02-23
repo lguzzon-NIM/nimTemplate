@@ -9,6 +9,7 @@ include "scriptsEnvVarNames.nim"
 const
   gcWindowsStr = "windows"
   gcLinuxStr = "linux"
+  gcMacOsXStr = "macosx"
   gcAmd64 = "amd64"
   gcArm64 = "arm64"
   gcI386 = "i386"
@@ -28,6 +29,7 @@ const
 
   gcGCC = "gcc"
   gcZIG = "zig"
+  gcCLang = "clang"
   gcCCDefault = gcGCC
 
   # --gc:refc|markAndSweep|boehm|go|none|regions
@@ -246,7 +248,7 @@ proc setCC() =
     else:
       let lZigCC = lBuildCacheDir / "zigCC.sh"
       const lZigCCContent = """
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 set -o pipefail
 # set -o xtrace
@@ -539,7 +541,10 @@ task Build, "build the project":
       discard
     else:
       if getReleaseOption():
-        exec "strip --strip-all " & getBuildBinaryFilePath()
+        if gcMacOsXStr == getTargetOS():
+          exec "strip " & getBuildBinaryFilePath()
+        else:
+          exec "strip --strip-all " & getBuildBinaryFilePath()
         exec "upx --best " & getBuildBinaryFilePath()
 
 
@@ -554,8 +559,12 @@ task BuildToDeploy, "build the project ready to deploy":
     lDeploy &= "\"--clang.options.speed=" & get("clang.options.speed").replace(
         "-O3", "-O4") & "\" "
   else:
-    lDeploy &= "\"--gcc.options.speed=" & get("gcc.options.speed").replace(
-        "-O3", "-O4") & "\" "
+    if (gcCLang == lCC):
+      lDeploy &= "\"--clang.options.speed=" & get("clang.options.speed").replace(
+          "-O3", "-O4") & "\" "
+    else:
+      lDeploy &= "\"--gcc.options.speed=" & get("gcc.options.speed").replace(
+          "-O3", "-O4") & "\" "
   lDeploy &= "Test release"
   selfExecWithDefaults(lDeploy)
 
