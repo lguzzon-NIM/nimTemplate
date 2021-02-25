@@ -68,10 +68,11 @@ proc getAbi(): string =
   if existsEnv(gcABIEnvVarName):
     getEnv(gcABIEnvVarName)
   else:
-    if (gcWindowsStr == getTargetOS()):
+    if (getTargetOS() in [gcMacOsXStr, gcWindowsStr]):
       "gnu"
     else:
       "musl"
+
 
 proc getGC(): string =
   # https://nim-lang.org/docs/gc.html
@@ -123,8 +124,8 @@ proc getOsCpuCompilerName(): string =
   else:
     let lCC = getCC()
     if (gcZIG == lCC):
-      result = "$1-$2-$3-$4-$5"%[getTargetOS(), lTargetCPU, getABI(), lCC,
-          getGC()]
+      result = "$1-$2-$3-$4-$5"%[getTargetOS(), lTargetCPU, lCC,
+          getGC(), getABI()]
     else:
       result = "$1-$2-$3-$4"%[getTargetOS(), lTargetCPU, lCC, getGC()]
   if getReleaseOption():
@@ -191,9 +192,9 @@ template selfExecWithDefaults (aCommand: string) =
   let lCommand = lCmdLine.options & " " & aCommand.strip() & " " &
       lCmdLine.params
   if lcIsNimble:
-    exec(selfExe().splitFile.dir / "nim " & lCommand.strip)
+    exec(selfExe().splitFile.dir / "nim " & lCommand.strip())
   else:
-    selfExec(lCommand.strip)
+    selfExec(lCommand.strip())
 
 
 template dependsOn (tasks: untyped) =
@@ -231,7 +232,16 @@ proc getZigTarget(): string =
     lTargetCPU = "aarch64"
   else:
     discard
-  "$1-$2-$3"%[lTargetCPU, getTargetOS(), getAbi()]
+
+  var lTargetOS = getTargetOS()
+  case lTargetOS
+  of "macosx":
+    lTargetOS = "macos"
+  else:
+    discard
+
+  "$1-$2-$3"%[lTargetCPU, lTargetOS, getAbi()]
+
 
 proc setCC() =
   let lCC = getCC()
@@ -240,11 +250,12 @@ proc setCC() =
     when defined(windows):
       let lZigCC = lBuildCacheDir / "zigCC.bat"
       const lZigCCContent = """
-@pushd "$1"
 @zig cc $2%*
-@popd
 """
-      lZigCC.writeFile(lZigCCContent%[lBuildCacheDir, "-target " & getZigTarget() & " "])
+      if (getReleaseOption()):
+        lZigCC.writeFile(lZigCCContent%[lBuildCacheDir, "-s -target " & getZigTarget() & " "])
+      else:
+        lZigCC.writeFile(lZigCCContent%[lBuildCacheDir, "-target " & getZigTarget() & " "])
     else:
       let lZigCC = lBuildCacheDir / "zigCC.sh"
       const lZigCCContent = """
@@ -252,11 +263,13 @@ proc setCC() =
 set -e
 set -o pipefail
 # set -o xtrace
-pushd "$1" >/dev/null
+# echo zig cc $2"$$@"
 zig cc $2"$$@"
-popd >/dev/null
 """
-      lZigCC.writeFile(lZigCCContent%[lBuildCacheDir, "-target " & getZigTarget() & " "])
+      if (getReleaseOption()):
+        lZigCC.writeFile(lZigCCContent%[lBuildCacheDir, "-s -target " & getZigTarget() & " "])
+      else:
+        lZigCC.writeFile(lZigCCContent%[lBuildCacheDir, "-target " & getZigTarget() & " "])
       exec("chmod +x \"$1\""%[lZigCC])
     switch "cc", "clang"
     switch "clang.exe", lZigCC
@@ -541,8 +554,9 @@ task Build, "build the project":
       discard
     else:
       if getReleaseOption():
-        if gcMacOsXStr == getTargetOS():
-          exec "strip " & getBuildBinaryFilePath()
+        if (gcMacOsXStr == getTargetOS()):
+          if (gcZIG != getCC()):
+            exec "strip " & getBuildBinaryFilePath()
         else:
           exec "strip --strip-all " & getBuildBinaryFilePath()
         exec "upx --best " & getBuildBinaryFilePath()
