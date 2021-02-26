@@ -64,6 +64,14 @@ proc getCC (): string =
     gcCCDefault
 
 
+var gCCVersion = ""
+proc getCCVersion(): string =
+  if ("" == gCCVersion):
+    let lExec = gorgeEx(getCC() & " --version")
+    gCCVersion = lExec.output.splitLines[0].split()[^1]
+  return gCCVersion
+
+
 proc getAbi(): string =
   if existsEnv(gcABIEnvVarName):
     getEnv(gcABIEnvVarName)
@@ -124,10 +132,9 @@ proc getOsCpuCompilerName(): string =
   else:
     let lCC = getCC()
     if (gcZIG == lCC):
-      result = "$1-$2-$3-$4-$5"%[getTargetOS(), lTargetCPU, lCC,
-          getGC(), getABI()]
+      result = "$1-$2-$3-$4-$5"%[getTargetOS(), lTargetCPU, getGC(), lCC, getABI()]
     else:
-      result = "$1-$2-$3-$4"%[getTargetOS(), lTargetCPU, lCC, getGC()]
+      result = "$1-$2-$3-$4"%[getTargetOS(), lTargetCPU, getGC(), lCC]
   if getReleaseOption():
     result = "$1-release"%[result]
 
@@ -278,7 +285,12 @@ zig cc $2"$$@"
     switch "cc", lCC
   case lCC
   of gcGCC:
-    switch "passL", "-static -no-pie"
+    let lCCMajor = getCCVersion().split('.')[0]
+    case lCCMajor
+    of "4":
+      switch "passL", "-static"
+    else:
+      switch "passL", "-static -no-pie"
   of gcZIG:
     switch "passL", "-static -no-pie"
     if (gcWindowsStr == getTargetOS()):
