@@ -1,6 +1,7 @@
 image:
   file: .gitpod.Dockerfile
 
+# https://www.gitpod.io/docs/config-start-tasks/#start-tasks
 tasks:
   - prebuild: echo "PREBUILD START" && echo "PREBUILD RUN" && echo "PREBUILD STOP"
   - before: echo "BEFORE START" && echo "BEFORE RUN" && echo "BEFORE STOP"
@@ -11,3 +12,4 @@ tasks:
 vscode:
   extensions:
     - nimsaem.nimvscode
+    - redhat.vscode-yaml
