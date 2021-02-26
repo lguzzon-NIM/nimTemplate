@@ -1,0 +1,13 @@
+image:
+  file: .gitpod.Dockerfile
+
+tasks:
+  - prebuild: echo "PREBUILD START" && echo "PREBUILD RUN" && echo "PREBUILD STOP"
+  - before: echo "BEFORE START" && echo "BEFORE RUN" && echo "BEFORE STOP"
+  - init: echo "INIT START" && echo "INIT RUN" && echo "INIT STOP"
+  - command: echo "COMMAND START" && echo "COMMAND RUN" && echo "COMMAND STOP"
+  - command: echo "COMMAND START" && ./scripts/linux/gitConfig.sh && echo "COMMAND STOP"
+
+vscode:
+  extensions:
+    - nimsaem.nimvscode

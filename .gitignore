@@ -4,6 +4,8 @@
 !**\.md
 
 !/\.editorconfig
+!/\.gitpod.Dockerfile
+!/\.gitpod.yml
 !/\.travis\.yml
 !/config\.nims
 !/LICENSE

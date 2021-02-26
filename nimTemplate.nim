@@ -3,7 +3,7 @@ import nimTemplate/consts
 
 
 proc getMessage*: string =
-    result = cHelloWorld
+  result = cHelloWorld
 
 when isMainModule:
-    echo getMessage()
+  echo getMessage()
