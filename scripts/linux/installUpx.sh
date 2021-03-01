@@ -2,7 +2,7 @@
 
 set -x
 
-(hash curl 2>/dev/null || sudo apt -y install curl) \
+(hash wget 2>/dev/null || sudo apt -y install wget) \
   && (hash git 2>/dev/null || sudo apt -y install git) \
   && (hash xz 2>/dev/null || sudo apt -y install xz-utils)
 readonly lUPXVersion=$(git ls-remote --tags "https://github.com/upx/upx.git" \
@@ -27,7 +27,7 @@ echo ${lArchitecture}
 
 readonly lUpxUrl="https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-${lArchitecture}_linux.tar.xz"
 echo "${lUpxUrl}"
-curl -o upx.tar.xz -sSL "${lUpxUrl}" \
+wget -O upx.tar.xz "${lUpxUrl}" \
   && tar -xvf upx.tar.xz \
   && rm upx.tar.xz || true \
   && rm -rf "${HOME}/.upx" || true \
