@@ -4,6 +4,11 @@ USER root
 RUN echo $(whoami)
 RUN echo $HOME
 
+RUN apt-get update \
+    && apt-get install -y \
+        git-flow \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN mkdir -p "/home/gitpod/gitpodDockerFileScripts"
 COPY scripts/linux/installUpx.sh "/home/gitpod/gitpodDockerFileScripts"
 COPY scripts/linux/installNim.sh "/home/gitpod/gitpodDockerFileScripts"
