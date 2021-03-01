@@ -40,7 +40,7 @@ function getScriptDir() {
 }
 
 readonly current_dir="$(pwd)"
-readonly script_path="$(readlink_ -f  "${BASH_SOURCE[0]}")"
+readonly script_path="$(readlink_ -f "${BASH_SOURCE[0]}")"
 readonly script_dir="$(getScriptDir "${script_path}")"
 readonly script_file="$(basename "${script_path}")"
 readonly script_name="${script_file%\.*}"
