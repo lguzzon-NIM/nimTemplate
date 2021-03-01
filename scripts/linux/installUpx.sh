@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -x
-
 (hash curl 2>/dev/null || sudo apt -y install curl) \
   && (hash git 2>/dev/null || sudo apt -y install git) \
   && (hash xz 2>/dev/null || sudo apt -y install xz-utils)
