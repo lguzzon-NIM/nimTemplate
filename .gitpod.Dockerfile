@@ -1,4 +1,4 @@
-	
+
 FROM	gitpod/workspace-full
 USER	root
 RUN	echo $(whoami)
@@ -20,8 +20,6 @@ RUN	chmod +x "/home/gitpod/gitpodDockerFileScripts/installZig.sh"
 USER	gitpod
 RUN	echo $(whoami)
 RUN	echo $HOME
-RUN	"/home/gitpod/gitpodDockerFileScripts/installTool.sh" -nim_i
-RUN	"/home/gitpod/gitpodDockerFileScripts/installTool.sh" -shfmt_i
-RUN	"/home/gitpod/gitpodDockerFileScripts/installTool.sh" -yq
+RUN	"/home/gitpod/gitpodDockerFileScripts/installTool.sh" -shfmt_i  -yq_i -nim_i
 RUN	"/home/gitpod/gitpodDockerFileScripts/installUpx.sh"
 RUN	"/home/gitpod/gitpodDockerFileScripts/installZig.sh"
