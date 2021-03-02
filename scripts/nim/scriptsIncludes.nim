@@ -741,7 +741,7 @@ task FormatYamlFiles, "format yaml files using yq":
     while lFilesToFormat.len > 0:
       let lFileToFormat = lCurrentDir / lFilesToFormat.pop()
       echo "Formatting [$1]"%[lFileToFormat]
-      let lExec = gorgeEx("yq r \"$1\" -P -I4 > yq.tmp && mv yq.tmp \"$1\""%[lFileToFormat])
+      let lExec = gorgeEx("yq eval 'sortKeys(..)' \"$1\" -P -I2 > yq.tmp && mv yq.tmp \"$1\""%[lFileToFormat])
       if (lExec.exitCode != 0):
         echo "Error!!!"
       if (lExec.output.len > 0):
@@ -756,4 +756,4 @@ task CheckProject, "project checking ...":
 
 
 task Lint, "project linting ...":
-  dependsOn CheckProject FormatSourceFiles FormatShfmtFiles
+  dependsOn CheckProject FormatSourceFiles FormatShfmtFiles FormatYamlFiles

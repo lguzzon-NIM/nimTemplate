@@ -39,18 +39,16 @@ function getScriptDir() {
   readlink_ -f "${lScriptPath%/*}"
 }
 
-readonly current_dir="$(pwd)"
+# readonly current_dir="$(pwd)"
 readonly script_path="$(readlink_ -f "${BASH_SOURCE[0]}")"
 readonly script_dir="$(getScriptDir "${script_path}")"
-readonly script_file="$(basename "${script_path}")"
-readonly script_name="${script_file%\.*}"
-readonly script_ext="$([[ ${script_file} == *.* ]] && echo ".${script_file##*.}" || echo '')"
+# readonly script_file="$(basename "${script_path}")"
+# readonly script_name="${script_file%\.*}"
+# readonly script_ext="$([[ ${script_file} == *.* ]] && echo ".${script_file##*.}" || echo '')"
 
 # Common Script Header End
 
 # Script Begin
-
-readonly lcCordovaApk="cordova/platforms/android/app/build/outputs/apk"
 
 architectureOs() {
   uname -m
@@ -106,8 +104,9 @@ nim_i() {
       echo "[ -d \"$APP_PATH/bin\" ] && export PATH=\"$APP_PATH/bin\${PATH:+:\$PATH}\""
       echo "### --- ${TOOL_NAME} --- ###"
     } >>"$BASHRC_PATH" \
-    && which nin \
+    && which nim \
     && nim --version
+  return $?
 }
 
 shfmt_i() {
@@ -133,7 +132,6 @@ shfmt_i() {
   local -r lGitHubUserRepo="${lGitHubUser}/${lGitHubRepo}"
   local -r lGitHubAppLatestRelease=$(curl -fsSL -H 'Accept: application/json' "https://github.com/${lGitHubUserRepo}/releases/latest")
   local -r lGitHubAppLatestReleaseVersion=$(echo "${lGitHubAppLatestRelease}" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
-  local -r lBin="/usr/local/bin/"
   local -r APP_PATH="$APPS_PATH/$lGitHubApp"
   local -r BASHRC_PATH="${HOME}/.bashrc"
   mkdir -p "$APP_PATH" \
@@ -150,6 +148,50 @@ shfmt_i() {
     } >>"$BASHRC_PATH" \
     && which ${lGitHubApp} \
     && ${lGitHubApp} -version
+  return $?
+}
+
+yq_i() {
+  local -r APPS_DIR_NAME=APPs
+  local -r APPS_PATH="${HOME}/${APPS_DIR_NAME}"
+  [ -d "/data" ] && APPS_PATH="/data/${APPS_DIR_NAME}"
+  echo "APPS_PATH [${APPS_PATH}]"
+  mkdir -p "${APPS_PATH}"
+  local -r lLinuxArchitecture=$(architectureOs)
+  local lArchitecture=${lLinuxArchitecture}
+  case ${lLinuxArchitecture} in
+    aarch64*)
+      lArchitecture="arm64"
+      ;;
+    x86_64*)
+      lArchitecture="amd64"
+      ;;
+  esac
+  local -r lGitHubUser="mikefarah"
+  local -r lGitHubRepo="yq"
+  local -r lGitHubApp="yq"
+  local -r lGitHubAppPath="${script_dir}/${lGitHubApp}"
+  # local -r lGitHubAppArchivePath="${script_dir}/${lGitHubApp}.tar.xz"
+  local -r lGitHubUserRepo="${lGitHubUser}/${lGitHubRepo}"
+  local -r lGitHubAppLatestRelease=$(curl -fsSL -H 'Accept: application/json' "https://github.com/${lGitHubUserRepo}/releases/latest")
+  # shellcheck disable=2001
+  local -r lGitHubAppLatestReleaseVersion=$(echo "${lGitHubAppLatestRelease}" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
+  local -r APP_PATH="$APPS_PATH/$lGitHubApp"
+  local -r BASHRC_PATH="${HOME}/.bashrc"
+  mkdir -p "$APP_PATH" \
+    && (hash curl 2>/dev/null || sudo apt -y install curl) \
+    && curl -o "${lGitHubAppPath}" -fsSL "https://github.com/${lGitHubUserRepo}/releases/download/${lGitHubAppLatestReleaseVersion}/${lGitHubApp}_linux_${lArchitecture}" \
+    && chmod +x "${lGitHubAppPath}" \
+    && mv "${lGitHubAppPath}" "$APP_PATH" \
+    && export PATH="$APP_PATH${PATH:+:$PATH}" \
+    && sed "/### +++ ${lGitHubApp} +++ ###/,/### --- ${lGitHubApp} --- ###/d" -i "$BASHRC_PATH" \
+    && {
+      echo "### +++ ${lGitHubApp} +++ ###"
+      echo "[ -d \"$APP_PATH\" ] && export PATH=\"$APP_PATH\${PATH:+:\$PATH}\""
+      echo "### --- ${lGitHubApp} --- ###"
+    } >>"$BASHRC_PATH" \
+    && which ${lGitHubApp} \
+    && ${lGitHubApp} --version
   return $?
 }
 
@@ -170,8 +212,16 @@ main() {
         -archOs | --architectureOs) architectureOs ;;
         -urlNimDevel | --urlNimDevel) urlNimDevel ;;
         -urlNimVersion | --urlNimVersion) urlNimVersion ;;
-        -nim_i | --nimInstall) nim_i ;;
+        -nim_i | --nimInstall)
+          if [ "$2" == "" ]; then
+            nim_i
+          else
+            nim_i "$2"
+            shift
+          fi
+          ;;
         -shfmt_i | --shfmtInstall) shfmt_i ;;
+        -yq_i | --yqInstall) yq_i ;;
         # Commands finish here
         *)
           echo "Error: can't understand --> $lOption <-- as option/parameter"
