@@ -28,7 +28,7 @@ TOOL_NAME="ZIG"
   && (rm -rf "$(dirname "$(which zig)")" 2>/dev/null \
     || rm -rf "$APPS_PATH/zig" 2>/dev/null \
     || true) \
-  && tar -xvf zig.tar.xz \
+  && tar -xvf zig.tar.xz 1>/dev/null 2>&1 \
   && rm zig.tar.xz || true \
   && mv zig-linux-"${lArchitecture}"* "$APPS_PATH/zig" \
   && export PATH="$APPS_PATH/zig${PATH:+:$PATH}" \
