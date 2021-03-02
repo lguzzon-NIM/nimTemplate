@@ -94,7 +94,7 @@ nim_i() {
     && (rm -rf "$(dirname "$(dirname "$(which nim)")")" 2>/dev/null \
       || rm -rf "$APP_PATH" 2>/dev/null \
       || true) \
-    && tar -xvf nim.tar.xz \
+    && tar -xvf nim.tar.xz 1>/dev/null 2>&1 \
     && rm nim.tar.xz || true \
     && mv nim-* "$APP_PATH" \
     && export PATH="$APP_PATH/bin${PATH:+:$PATH}" \
