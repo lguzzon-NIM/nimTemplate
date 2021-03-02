@@ -80,7 +80,7 @@ urlNimVersion() {
 
 nim_i() {
   local -r APPS_DIR_NAME=APPs
-  local -r APPS_PATH="${HOME}/${APPS_DIR_NAME}"
+  local APPS_PATH="${HOME}/${APPS_DIR_NAME}"
   [ -d "/data" ] && APPS_PATH="/data/${APPS_DIR_NAME}"
   echo "APPS_PATH [${APPS_PATH}]"
   mkdir -p "${APPS_PATH}"
@@ -111,7 +111,7 @@ nim_i() {
 
 shfmt_i() {
   local -r APPS_DIR_NAME=APPs
-  local -r APPS_PATH="${HOME}/${APPS_DIR_NAME}"
+  local APPS_PATH="${HOME}/${APPS_DIR_NAME}"
   [ -d "/data" ] && APPS_PATH="/data/${APPS_DIR_NAME}"
   echo "APPS_PATH [${APPS_PATH}]"
   mkdir -p "${APPS_PATH}"
@@ -153,7 +153,7 @@ shfmt_i() {
 
 yq_i() {
   local -r APPS_DIR_NAME=APPs
-  local -r APPS_PATH="${HOME}/${APPS_DIR_NAME}"
+  local APPS_PATH="${HOME}/${APPS_DIR_NAME}"
   [ -d "/data" ] && APPS_PATH="/data/${APPS_DIR_NAME}"
   echo "APPS_PATH [${APPS_PATH}]"
   mkdir -p "${APPS_PATH}"
