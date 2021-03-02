@@ -4,8 +4,15 @@ image:
 tasks:
   #  - prebuild: echo "PREBUILD START" && echo "PREBUILD RUN" && echo "PREBUILD STOP"
   #  - before: echo "BEFORE START" && echo "BEFORE RUN" && echo "BEFORE STOP"
-  - init: echo "INIT START" && ./scripts/linux/gitConfig.sh && git stash push && git flow init -d && ( git stash pop || true ) && ./scripts/linux/installTool.sh -shfmt_i -yq_i -nim_i && ./scripts/linux/installUpx.sh && ./scripts/linux/installZig.sh && echo "INIT STOP"
   #  - command: echo "COMMAND START" && echo "COMMAND RUN" && echo "COMMAND STOP"
+  - init: |-
+      echo "INIT START" \
+      && ./scripts/linux/gitConfig.sh \
+      && git stash push \
+      && git flow init -d \
+      && ( git stash pop || true ) \
+      && ./scripts/linux/installTool.sh -upx_i -shfmt_i -yq_i -zig_i -nim_i \
+      && echo "INIT STOP"
 vscode:
   extensions:
     - nimsaem.nimvscode

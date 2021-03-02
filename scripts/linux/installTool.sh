@@ -54,6 +54,14 @@ architectureOs() {
   uname -m
 }
 
+sAPPS_PATH() {
+  local -r APPS_DIR_NAME=${1:-APPs}
+  APPS_PATH="${HOME}/${APPS_DIR_NAME}"
+  [ -d "/data" ] && APPS_PATH="/data/${APPS_DIR_NAME}"
+  echo "APPS_PATH [${APPS_PATH}]"
+  mkdir -p "${APPS_PATH}"
+}
+
 architectureNim() {
   local -r lLinuxArchitecture=$(architectureOs)
   local lArchitecture=${lLinuxArchitecture}
@@ -79,42 +87,61 @@ urlNimVersion() {
 }
 
 nim_i() {
-  local -r APPS_DIR_NAME=APPs
-  local APPS_PATH="${HOME}/${APPS_DIR_NAME}"
-  [ -d "/data" ] && APPS_PATH="/data/${APPS_DIR_NAME}"
-  echo "APPS_PATH [${APPS_PATH}]"
-  mkdir -p "${APPS_PATH}"
   local -r TOOL_NAME="NIM"
   local -r TOOL_URL="${1:-$(urlNimDevel)}"
-  local -r APP_PATH="$APPS_PATH/nim"
+  sAPPS_PATH
+  local -r APP_PATH="${APPS_PATH}/nim"
   local -r BASHRC_PATH="${HOME}/.bashrc"
   (hash curl 2>/dev/null || sudo apt -y install curl) \
     && (hash jq 2>/dev/null || sudo apt -y install jq) \
     && curl -o nim.tar.xz -sSL "${TOOL_URL}" \
     && (rm -rf "$(dirname "$(dirname "$(which nim)")")" 2>/dev/null \
-      || rm -rf "$APP_PATH" 2>/dev/null \
+      || rm -rf "${APP_PATH}" 2>/dev/null \
       || true) \
     && tar -xvf nim.tar.xz 1>/dev/null 2>&1 \
     && rm nim.tar.xz || true \
-    && mv nim-* "$APP_PATH" \
-    && export PATH="$APP_PATH/bin${PATH:+:$PATH}" \
-    && sed "/### +++ ${TOOL_NAME} +++ ###/,/### --- ${TOOL_NAME} --- ###/d" -i "$BASHRC_PATH" \
+    && mv nim-* "${APP_PATH}" \
+    && export PATH="${APP_PATH}/bin${PATH:+:$PATH}" \
+    && sed "/### +++ ${TOOL_NAME^^} +++ ###/,/### --- ${TOOL_NAME^^} --- ###/d" -i "$BASHRC_PATH" \
     && {
-      echo "### +++ ${TOOL_NAME} +++ ###"
-      echo "[ -d \"$APP_PATH/bin\" ] && export PATH=\"$APP_PATH/bin\${PATH:+:\$PATH}\""
-      echo "### --- ${TOOL_NAME} --- ###"
+      echo "### +++ ${TOOL_NAME^^} +++ ###"
+      echo "[ -d \"${APP_PATH}/bin\" ] && export PATH=\"${APP_PATH}/bin\${PATH:+:\$PATH}\""
+      echo "### --- ${TOOL_NAME^^} --- ###"
     } >>"$BASHRC_PATH" \
     && which nim \
     && nim --version
   return $?
 }
 
+zig_i() {
+  sAPPS_PATH
+  TOOL_NAME="zig"
+  local -r APP_PATH="${APPS_PATH}/${TOOL_NAME}"
+  local -r BASHRC_PATH="${HOME}/.bashrc"
+  local -r lLinuxArchitecture=$(architectureOs)
+  local lArchitecture=${lLinuxArchitecture}
+  (hash curl || sudo apt -y install curl) \
+    && (hash jq || sudo apt -y install jq) \
+    && curl -o zig.tar.xz -sSL "$(curl -slL "https://ziglang.org/download/index.json" \
+      | jq -r ".master[\"${lArchitecture}-linux\"].tarball")" \
+    && (rm -rf "$(dirname "$(which zig)")" 2>/dev/null \
+      || rm -rf "${APP_PATH}" 2>/dev/null \
+      || true) \
+    && tar -xvf zig.tar.xz 1>/dev/null 2>&1 \
+    && rm zig.tar.xz || true \
+    && mv zig-linux-"${lArchitecture}"* "${APP_PATH}" \
+    && export PATH="${APP_PATH}${PATH:+:$PATH}" \
+    && sed "/### +++ ${TOOL_NAME^^} +++ ###/,/### --- ${TOOL_NAME^^} --- ###/d" -i "${BASHRC_PATH}" \
+    && {
+      echo "### +++ ${TOOL_NAME^^} +++ ###"
+      echo "[ -d \"${APP_PATH}\" ] && export PATH=\"${APP_PATH}\${PATH:+:\$PATH}\""
+      echo "### --- ${TOOL_NAME^^} --- ###"
+    } >>"${BASHRC_PATH}" \
+    && which ${TOOL_NAME} \
+    && ${TOOL_NAME} version
+}
+
 shfmt_i() {
-  local -r APPS_DIR_NAME=APPs
-  local APPS_PATH="${HOME}/${APPS_DIR_NAME}"
-  [ -d "/data" ] && APPS_PATH="/data/${APPS_DIR_NAME}"
-  echo "APPS_PATH [${APPS_PATH}]"
-  mkdir -p "${APPS_PATH}"
   local -r lLinuxArchitecture=$(architectureOs)
   local lArchitecture=${lLinuxArchitecture}
   case ${lLinuxArchitecture} in
@@ -132,19 +159,20 @@ shfmt_i() {
   local -r lGitHubUserRepo="${lGitHubUser}/${lGitHubRepo}"
   local -r lGitHubAppLatestRelease=$(curl -fsSL -H 'Accept: application/json' "https://github.com/${lGitHubUserRepo}/releases/latest")
   local -r lGitHubAppLatestReleaseVersion=$(echo "${lGitHubAppLatestRelease}" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
-  local -r APP_PATH="$APPS_PATH/$lGitHubApp"
+  sAPPS_PATH
+  local -r APP_PATH="${APPS_PATH}/$lGitHubApp"
   local -r BASHRC_PATH="${HOME}/.bashrc"
-  mkdir -p "$APP_PATH" \
+  mkdir -p "${APP_PATH}" \
     && (hash curl 2>/dev/null || sudo apt -y install curl) \
     && curl -o "${lGitHubAppPath}" -fsSL "https://github.com/${lGitHubUserRepo}/releases/download/${lGitHubAppLatestReleaseVersion}/${lGitHubApp}_${lGitHubAppLatestReleaseVersion}_linux_${lArchitecture}" \
     && chmod +x "${lGitHubAppPath}" \
-    && mv "${lGitHubAppPath}" "$APP_PATH" \
-    && export PATH="$APP_PATH${PATH:+:$PATH}" \
-    && sed "/### +++ ${lGitHubApp} +++ ###/,/### --- ${lGitHubApp} --- ###/d" -i "$BASHRC_PATH" \
+    && mv "${lGitHubAppPath}" "${APP_PATH}" \
+    && export PATH="${APP_PATH}${PATH:+:$PATH}" \
+    && sed "/### +++ ${lGitHubApp^^} +++ ###/,/### --- ${lGitHubApp^^} --- ###/d" -i "$BASHRC_PATH" \
     && {
-      echo "### +++ ${lGitHubApp} +++ ###"
-      echo "[ -d \"$APP_PATH\" ] && export PATH=\"$APP_PATH\${PATH:+:\$PATH}\""
-      echo "### --- ${lGitHubApp} --- ###"
+      echo "### +++ ${lGitHubApp^^} +++ ###"
+      echo "[ -d \"${APP_PATH}\" ] && export PATH=\"${APP_PATH}\${PATH:+:\$PATH}\""
+      echo "### --- ${lGitHubApp^^} --- ###"
     } >>"$BASHRC_PATH" \
     && which ${lGitHubApp} \
     && ${lGitHubApp} -version
@@ -152,11 +180,6 @@ shfmt_i() {
 }
 
 yq_i() {
-  local -r APPS_DIR_NAME=APPs
-  local APPS_PATH="${HOME}/${APPS_DIR_NAME}"
-  [ -d "/data" ] && APPS_PATH="/data/${APPS_DIR_NAME}"
-  echo "APPS_PATH [${APPS_PATH}]"
-  mkdir -p "${APPS_PATH}"
   local -r lLinuxArchitecture=$(architectureOs)
   local lArchitecture=${lLinuxArchitecture}
   case ${lLinuxArchitecture} in
@@ -176,23 +199,69 @@ yq_i() {
   local -r lGitHubAppLatestRelease=$(curl -fsSL -H 'Accept: application/json' "https://github.com/${lGitHubUserRepo}/releases/latest")
   # shellcheck disable=2001
   local -r lGitHubAppLatestReleaseVersion=$(echo "${lGitHubAppLatestRelease}" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
-  local -r APP_PATH="$APPS_PATH/$lGitHubApp"
+  sAPPS_PATH
+  local -r APP_PATH="${APPS_PATH}/$lGitHubApp"
   local -r BASHRC_PATH="${HOME}/.bashrc"
-  mkdir -p "$APP_PATH" \
+  mkdir -p "${APP_PATH}" \
     && (hash curl 2>/dev/null || sudo apt -y install curl) \
     && curl -o "${lGitHubAppPath}" -fsSL "https://github.com/${lGitHubUserRepo}/releases/download/${lGitHubAppLatestReleaseVersion}/${lGitHubApp}_linux_${lArchitecture}" \
     && chmod +x "${lGitHubAppPath}" \
-    && mv "${lGitHubAppPath}" "$APP_PATH" \
-    && export PATH="$APP_PATH${PATH:+:$PATH}" \
-    && sed "/### +++ ${lGitHubApp} +++ ###/,/### --- ${lGitHubApp} --- ###/d" -i "$BASHRC_PATH" \
+    && mv "${lGitHubAppPath}" "${APP_PATH}" \
+    && export PATH="${APP_PATH}${PATH:+:$PATH}" \
+    && sed "/### +++ ${lGitHubApp^^} +++ ###/,/### --- ${lGitHubApp^^} --- ###/d" -i "$BASHRC_PATH" \
     && {
-      echo "### +++ ${lGitHubApp} +++ ###"
-      echo "[ -d \"$APP_PATH\" ] && export PATH=\"$APP_PATH\${PATH:+:\$PATH}\""
-      echo "### --- ${lGitHubApp} --- ###"
+      echo "### +++ ${lGitHubApp^^} +++ ###"
+      echo "[ -d \"${APP_PATH}\" ] && export PATH=\"${APP_PATH}\${PATH:+:\$PATH}\""
+      echo "### --- ${lGitHubApp^^} --- ###"
     } >>"$BASHRC_PATH" \
     && which ${lGitHubApp} \
     && ${lGitHubApp} --version
   return $?
+}
+
+upx_i() {
+  local -r lLinuxArchitecture=$(architectureOs)
+  local lArchitecture=${lLinuxArchitecture}
+  case ${lLinuxArchitecture} in
+    aarch64*)
+      lArchitecture="arm64"
+      ;;
+    x86_64*)
+      lArchitecture="amd64"
+      ;;
+  esac
+  local -r lGitHubUser="upx"
+  local -r lGitHubRepo="upx"
+  local -r lGitHubApp="upx"
+  local -r lGitHubUserRepo="${lGitHubUser}/${lGitHubRepo}"
+  local -r lGitHubAppArchivePath="${script_dir}/${lGitHubApp}.tar.xz"
+  sAPPS_PATH
+  local -r APP_PATH="${APPS_PATH}/$lGitHubApp"
+  local -r BASHRC_PATH="${HOME}/.bashrc"
+  (hash curl 2>/dev/null || sudo apt -y install curl 2>/dev/null) \
+    && (hash git 2>/dev/null || sudo apt -y install git 2>/dev/null) \
+    && (hash xz 2>/dev/null || sudo apt -y install xz-utils 2>/dev/null)
+  local -r lUPXVersion=$(git ls-remote --tags "https://github.com/upx/upx.git" \
+    | awk '{print $2}' \
+    | grep -v '{}' \
+    | awk -F"/" '{print $3}' \
+    | tail -1 \
+    | sed "s/v//g")
+  local -r lUpxUrl="https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-${lArchitecture}_linux.tar.xz"
+  curl -o "${lGitHubAppArchivePath}" -fsSL "${lUpxUrl}" \
+    && tar -xvf "${lGitHubAppArchivePath}" 1>/dev/null 2>&1 \
+    && rm "${lGitHubAppArchivePath}" || true \
+    && rm -rf "${APP_PATH}" || true \
+    && mv "upx-${lUPXVersion}-${lArchitecture}_linux" "${APP_PATH}" \
+    && export PATH="${APP_PATH}${PATH:+:$PATH}" \
+    && sed "/### +++ ${lGitHubApp^^} +++ ###/,/### --- ${lGitHubApp^^} --- ###/d" -i "$BASHRC_PATH" \
+    && {
+      echo "### +++ ${lGitHubApp^^} +++ ###"
+      echo "[ -d \"${APP_PATH}\" ] && export PATH=\"${APP_PATH}\${PATH:+:\$PATH}\""
+      echo "### --- ${lGitHubApp^^} --- ###"
+    } >>"$BASHRC_PATH" \
+    && which ${lGitHubApp} \
+    && ${lGitHubApp} --version
 }
 
 main() {
@@ -221,7 +290,9 @@ main() {
           fi
           ;;
         -shfmt_i | --shfmtInstall) shfmt_i ;;
+        -upx_i | --upxInstall) upx_i ;;
         -yq_i | --yqInstall) yq_i ;;
+        -zig_i | --zigInstall) zig_i ;;
         # Commands finish here
         *)
           echo "Error: can't understand --> $lOption <-- as option/parameter"
