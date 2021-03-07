@@ -9,11 +9,10 @@ tasks:
       echo "INIT START" \
       && ./scripts/linux/gitConfig.sh \
       && git stash push \
-      && git flow init -d \
+      && git flow init -d -f \
       && ( git stash pop || true ) \
       && ./scripts/linux/installTool.sh -upx_i -shfmt_i -yq_i -zig_i -nim_i \
       && echo "INIT STOP"
 vscode:
   extensions:
     - nimsaem.nimvscode
-    - redhat.vscode-yaml
