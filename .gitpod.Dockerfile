@@ -1,5 +1,14 @@
 
 FROM	gitpod/workspace-full
-RUN	sudo apt-get update && sudo apt-get install -y \
+RUN \
+  echo "**** install runtime dependencies ****" && \
+  sudo apt-get update && \
+  sudo apt-get install -y \
 	git-flow \
-	&& sudo rm -rf /var/lib/apt/lists/*
+  echo "**** clean up ****" && \
+  apt-get clean && \
+  rm -rf \
+    /tmp/* \
+    /var/lib/apt/lists/* \
+    /var/tmp/*
+    
