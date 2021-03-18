@@ -6,9 +6,10 @@ RUN \
   && sudo apt-get install -y \
     git-flow \
   && echo "**** clean up ****" \
-  && apt-get clean\
-  && rm -rf \
+  && sudo apt-get autoremove \
+  && sudo apt-get clean \
+  && sudo rm -rf \
     /tmp/* \
     /var/lib/apt/lists/* \
-    /var/tmp/*
+    /var/tmp/* || true
     
