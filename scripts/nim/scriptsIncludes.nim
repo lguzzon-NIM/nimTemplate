@@ -323,6 +323,8 @@ proc switchCommon () =
     switch "overflow_checks", "off"
     switch "range_checks", "off"
     switch "stacktrace", "off"
+    switch "passC", "-flto"
+    switch "passL", "-flto"
   else:
     switch "embedsrc", "on"
   switch "out", getBuildBinaryFilePath()
