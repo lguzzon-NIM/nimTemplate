@@ -78,7 +78,6 @@ git config --global --replace-all credential.helper 'cache --timeout=3600'
   && (rm -Rf sexy-bash-prompt || true) \
   && git clone --depth 1 --config core.autocrlf=false https://github.com/twolfson/sexy-bash-prompt \
   && cd sexy-bash-prompt \
-  && (hash make &>/dev/null || sudo apt -y install build-essential || sudo apt update && sudo apt -y install build-essential) \
   && make install \
   && cd .. \
   && rm -Rf sexy-bash-prompt) \
