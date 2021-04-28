@@ -5,7 +5,6 @@ RUN \
   && sudo apt-get update \
   && sudo apt-get install -y \
     git-flow \
-    build-essential \
   && echo "**** clean up ****" \
   && sudo apt-get autoremove \
   && sudo apt-get clean \
