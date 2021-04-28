@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
 set -e
+set -o pipefail
 set -o xtrace
 
-lUserName=$(git config --global user.name)
+lUserName=$(git config --global user.name || true)
 lUserName=${1:-$lUserName}
 lUserName=${lUserName:-Luca Guzzon}
 
-lUserMail=$(git config --global user.email)
+lUserMail=$(git config --global user.email || true)
 lUserMail=${2:-$lUserMail}
 lUserMail=${lUserMail:-luca.guzzon@gmail.com}
-
-set -o pipefail
 
 git config --global user.name "${lUserName}"
 git config --global user.email "${lUserMail}"
@@ -25,18 +24,26 @@ git config --global --replace-all alias.lg "log --graph --pretty=format:'%Cred%h
 git config --global --replace-all alias.lg-ascii "log --graph --pretty=format:'%h -%d %s (%cr) <%an>' --abbrev-commit"
 
 # https://githowto.com/setup
-git config --global core.autocrlf true
+# git config --global core.autocrlf true
 # original --> git config --global core.safecrlf true
-git config --global core.safecrlf warn
+# git config --global core.safecrlf warn
+
+# https://stackoverflow.com/questions/2517190/how-do-i-force-git-to-use-lf-instead-of-crlf-under-windows#13154031
+git config --global --replace-all core.autocrlf false
+git config --global --replace-all core.eol lf
+# ma be in a single repo -> git config core.eol auto
 
 git config --global --replace-all alias.co "checkout"
 git config --global --replace-all alias.ci "commit"
 git config --global --replace-all alias.st "status"
 git config --global --replace-all alias.sti "status --ignored"
 git config --global --replace-all alias.br "branch"
+git config --global --replace-all alias.brs "branch --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(contents:subject) %(color:green)(%(committerdate:relative)) [%(authorname)]' --sort=-committerdate"
+git config --global --replace-all alias.undo "reset HEAD~1 --mixed"
+git config --global --replace-all alias.rst "reset --hard"
 
 # https://switowski.com/git/2019/01/18/7-git-functions-to-make-your-life-easier.html
-git config --global --replace-all alias.aliases "!git config --get-regexp alias | sort"
+git config --global --replace-all alias.aliases "!git config --get-regexp alias | sort | more"
 git config --global --replace-all alias.squash '!f(){ git reset --soft HEAD~${1} && git commit --edit -m"$(git log --format=%B --reverse HEAD..HEAD@{1})"; }; f'
 
 # https://github.com/durdn/cfg/blob/master/.gitconfig
@@ -62,3 +69,17 @@ git config --global --replace-all credential.helper 'cache --timeout=3600'
 #   https://gist.github.com/eliotsykes/47516b877f5a4f7cd52f#gistcomment-2835293
 #   https://github.com/magicmonty/bash-git-prompt
 #   https://gist.github.com/eliotsykes/47516b877f5a4f7cd52f
+#   https://snyk.io/blog/10-git-aliases-for-faster-and-productive-git-workflow/
+
+# https://github.com/lguzzon/sexy-bash-prompt
+(cd /tmp \
+  && touch ~/.bash_profile \
+  && touch ~/.bashrc \
+  && (rm -Rf sexy-bash-prompt || true) \
+  && git clone --depth 1 --config core.autocrlf=false https://github.com/twolfson/sexy-bash-prompt \
+  && cd sexy-bash-prompt \
+  && (hash make &>/dev/null || sudo apt -y install build-essential || sudo apt update && sudo apt -y install build-essential) \
+  && make install \
+  && cd .. \
+  && rm -Rf sexy-bash-prompt) \
+  && echo Restart shell to see new promt
