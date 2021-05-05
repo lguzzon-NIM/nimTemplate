@@ -285,12 +285,13 @@ zig cc $2"$$@"
     switch "cc", lCC
   case lCC
   of gcGCC:
-    let lCCMajor = getCCVersion().split('.')[0]
-    case lCCMajor
-    of "4":
-      switch "passL", "-static"
-    else:
-      switch "passL", "-static -no-pie"
+    if (gcMacOsXStr != getTargetOS()):
+      let lCCMajor = getCCVersion().split('.')[0]
+      case lCCMajor
+      of "4":
+        switch "passL", "-static"
+      else:
+        switch "passL", "-static -no-pie"
   of gcZIG:
     switch "passL", "-static -no-pie"
     if (gcWindowsStr == getTargetOS()):
@@ -323,8 +324,13 @@ proc switchCommon () =
     switch "overflow_checks", "off"
     switch "range_checks", "off"
     switch "stacktrace", "off"
-    switch "passC", "-flto"
-    switch "passL", "-flto"
+    if (gcZIG==getCC()):
+      if (gcMacOsXStr != getTargetOS()):
+        switch "passC", "-flto"
+        switch "passL", "-flto"
+    else:
+      switch "passC", "-flto"
+      switch "passL", "-flto"
   else:
     switch "embedsrc", "on"
   switch "out", getBuildBinaryFilePath()
