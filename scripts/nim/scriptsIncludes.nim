@@ -314,11 +314,15 @@ proc switchCommon () =
     switch "assertions", "off"
     switch "bound_checks", "off"
     switch "embedsrc", "off"
+    when NimVersion < "1.5.0":
+      switch "dead_code_elim", "on"
     switch "debugger", "off"
     switch "excessiveStackTrace", "off"
     switch "field_checks", "off"
     switch "line_dir", "off"
     switch "linetrace", "off"
+    when NimVersion < "1.5.0":
+      switch "nilchecks", "off"
     switch "obj_checks", "off"
     switch "opt", "speed"
     switch "overflow_checks", "off"
