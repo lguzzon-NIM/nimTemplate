@@ -6,7 +6,9 @@ export APPS_PATH="${HOME}/${APPS_DIR_NAME}"
 echo "APPS_PATH [${APPS_PATH}]"
 mkdir -p "${APPS_PATH}"
 
-readonly lLinuxArchitecture=$(uname -m)
+lLinuxArchitecture=$(uname -m)
+readonly lLinuxArchitecture
+
 echo "Linux Architecture: ${lLinuxArchitecture}"
 lArchitecture=${lLinuxArchitecture}
 case ${lLinuxArchitecture} in

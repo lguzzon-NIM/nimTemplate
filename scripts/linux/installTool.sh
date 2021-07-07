@@ -6,7 +6,8 @@
 
 trap ctrl_c INT
 
-readonly UNAME_S=$(uname -s)
+UNAME_S=$(uname -s)
+readonly UNAME_S
 
 function ctrl_c() {
   echo "** Trapped CTRL-C"
@@ -40,8 +41,10 @@ function getScriptDir() {
 }
 
 # readonly current_dir="$(pwd)"
-readonly script_path="$(readlink_ -f "${BASH_SOURCE[0]}")"
-readonly script_dir="$(getScriptDir "${script_path}")"
+script_path="$(readlink_ -f "${BASH_SOURCE[0]}")"
+readonly script_path
+script_dir="$(getScriptDir "${script_path}")"
+readonly script_dir
 # readonly script_file="$(basename "${script_path}")"
 # readonly script_name="${script_file%\.*}"
 # readonly script_ext="$([[ ${script_file} == *.* ]] && echo ".${script_file##*.}" || echo '')"
@@ -54,6 +57,7 @@ architectureOs() {
   uname -m
 }
 
+# shellcheck disable=SC2120
 sAPPS_PATH() {
   local -r APPS_DIR_NAME=${1:-APPs}
   APPS_PATH="${HOME}/${APPS_DIR_NAME}"
@@ -158,6 +162,7 @@ shfmt_i() {
   local -r lGitHubAppPath="${script_dir}/${lGitHubApp}"
   local -r lGitHubUserRepo="${lGitHubUser}/${lGitHubRepo}"
   local -r lGitHubAppLatestRelease=$(curl -fsSL -H 'Accept: application/json' "https://github.com/${lGitHubUserRepo}/releases/latest")
+  # shellcheck disable=2001
   local -r lGitHubAppLatestReleaseVersion=$(echo "${lGitHubAppLatestRelease}" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
   sAPPS_PATH
   local -r APP_PATH="${APPS_PATH}/$lGitHubApp"
