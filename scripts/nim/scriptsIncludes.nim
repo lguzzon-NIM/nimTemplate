@@ -328,7 +328,7 @@ proc switchCommon () =
     switch "overflow_checks", "off"
     switch "range_checks", "off"
     switch "stacktrace", "off"
-    if (gcZIG==getCC()):
+    if (gcZIG == getCC()):
       if (gcMacOsXStr != getTargetOS()):
         switch "passC", "-flto"
         switch "passL", "-flto"
@@ -359,9 +359,8 @@ proc switchCommon () =
 
 
 proc getTestBinaryFilePath (aSourcePath: string): string =
-  result = "$1_$2_$3$4"%[getBuildTargetTestDir() / splitFile(aSourcePath).name,
-                         getTargetOS(),
-                         getTargetCPU(),
+  result = "$1_$2$3"%[getBuildTargetTestDir() / splitFile(aSourcePath).name,
+                         getOsCpuCompilerName(),
                          getBinaryFileExt()]
 
 
@@ -713,7 +712,8 @@ task FormatShfmtFiles, "format shfmt files":
     echo "Error shfmt not present in path!!!"
   else:
     let lCurrentDir = getCurrentDir()
-    let lExec = gorgeEx("shfmt -w -bn -ci -i 2 -f -s \"$1\""%[lCurrentDir])
+    const lCommandFmt = "shfmt -w -bn -ci -i 2 -f -s \"$1\""
+    let lExec = gorgeEx(lCommandFmt%[lCurrentDir])
     if (lExec.exitCode != 0):
       echo "Error!!!"
     if (lExec.output.len > 0):
@@ -723,7 +723,7 @@ task FormatShfmtFiles, "format shfmt files":
       while lFilesToFormat.len > 0:
         let lFileToFormat = lFilesToFormat.pop()
         echo "Formatting [$1]"%[lFileToFormat]
-        let lExec = gorgeEx("shfmt -w -bn -ci -i 2 -s \"$1\""%[lFileToFormat])
+        let lExec = gorgeEx(lCommandFmt%[lFileToFormat])
         if (lExec.exitCode != 0):
           echo "Error!!!"
         if (lExec.output.len > 0):
