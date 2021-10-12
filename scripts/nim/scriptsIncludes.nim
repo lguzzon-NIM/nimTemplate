@@ -581,7 +581,10 @@ task Build, "build the project":
             exec "strip " & getBuildBinaryFilePath()
         else:
           exec "strip --strip-all " & getBuildBinaryFilePath()
-        exec "upx --best " & getBuildBinaryFilePath()
+        try:
+          exec "upx --best " & getBuildBinaryFilePath()
+        except:
+          echo "ERROR!!! UPX goes wrong but we continue ..."
 
 
 task CBuild, "clean and build the project":
