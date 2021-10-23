@@ -493,7 +493,7 @@ task CreateNew, "create a new project from " & "n" & "imTemplate":
     echo "Please provide new project name as param"
     return
   if (not checkProjectName(lNewProjectName, lValidCharSet)):
-    echo "Please provide a project name not containing invalid chars $1"%["{'a'..'z', 'A'..'Z', '0'..'9', '_'}"]
+    echo "Please provide a project name containing valid chars in $1"%[$lValidCharSet]
     return
   let lNewProjectDir = lParentDir / lNewProjectName
   let lTag = getLatestTagOfGitRepo(gcRepoURL)
