@@ -1,37 +1,38 @@
 # Check here https://config.travis-ci.com/explore
 # Format here https://jsonformatter.org/yaml-formatter
-os: linux
-dist: xenial
-language: c
-compiler: gcc
 branches:
   only:
     - master
     - develop
-    - '/^release\/.*$/'
-    - '/^hotfix\/.*$/'
+    - /^release\/.*$/
+    - /^hotfix\/.*$/
+cache:
+  directories:
+    - $HOME/.choosenim
+compiler: gcc
+dist: xenial
 env:
   global:
+    - CACHE_NAME=ChooseNim
     - NIM_VERBOSITY=0
   matrix:
-    - "NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=refc"
-    - "NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=arc"
-    - "NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc"
-    - "NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc"
-    - "NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=refc"
-    - "NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=arc"
-    - "NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc"
-    - "NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc"
-    - "NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=refc"
-    - "NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=arc"
-    - "NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc"
-    - "NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc"
-    - "NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=refc"
-    - "NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=version NIM_GC=arc"
-    - "NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc"
-    - "NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc"
-    allow_failures:
-      - env: NIM_TAG_SELECTOR=devel
-
+    - NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=stable NIM_GC=refc
+    - NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=stable NIM_GC=arc
+    - NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc
+    - NIM_TARGET_OS=linux NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc
+    - NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=stable NIM_GC=refc
+    - NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=stable NIM_GC=arc
+    - NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc
+    - NIM_TARGET_OS=linux NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc
+    - NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=stable NIM_GC=refc
+    - NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=stable NIM_GC=arc
+    - NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc
+    - NIM_TARGET_OS=windows NIM_TARGET_CPU=amd64 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc
+    - NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=stable NIM_GC=refc
+    - NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=stable NIM_GC=arc
+    - NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=refc
+    - NIM_TARGET_OS=windows NIM_TARGET_CPU=i386 USE_GCC=9 NIM_TAG_SELECTOR=devel NIM_GC=arc
+language: c
+os: linux
 script:
   - ./scripts/linux/travis.sh
