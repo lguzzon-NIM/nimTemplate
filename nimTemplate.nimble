@@ -1,6 +1,6 @@
 
 # Package
-version = "0.0.0" # PLEASE CHANGE ME
+version = "0.7.0" # PLEASE CHANGE ME
 author = "Luca Guzzon" # PLEASE CHANGE ME
 description = "nimTemplate" # PLEASE CHANGE ME
 license = "MIT"
