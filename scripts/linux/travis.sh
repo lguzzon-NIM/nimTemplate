@@ -181,5 +181,7 @@ fi
 #Before Script
 
 #Script
+pwd
+ls -lah
 nim NInstallDeps
 nim CTest release
