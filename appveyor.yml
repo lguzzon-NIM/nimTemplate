@@ -1,0 +1,12 @@
+version: 1.0.{build}
+build_cloud: ubuntu
+image: Ubuntu1804
+environment:
+  matrix:
+  - NIM_TARGET_OS: linux
+    NIM_TARGET_CPU: amd64
+    USE_GCC: 9
+    NIM_TAG_SELECTOR: stable
+    NIM_GC: refc
+build_script:
+- sh: ./scripts/linux/travis.sh
