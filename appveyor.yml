@@ -1,7 +1,7 @@
 # https://www.appveyor.com/docs/appveyor-yml/
 version: 1.0.{build}
 build_cloud: ubuntu Docker
-image: ubuntu
+image: linux
 environment:
   matrix:
   - NIM_TARGET_OS: linux
