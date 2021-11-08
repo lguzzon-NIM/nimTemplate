@@ -686,10 +686,10 @@ task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
 
 task Util_AppveyourEnvMat, "generate the complete appveyor-ci env matrix":
   const
-    lEnvs = @[@[gcTargetOSEnvVarName, gcLinuxStr, gcWindowsStr],
+    lEnvs = @[@[gcNimTagSelector, "1.6.0", "1.4.8"],
+              @[gcGCCVersionToUseEnvVarName, "6", "7", "9", "11"],
               @[gcTargetCpuEnvVarName, gcAmd64, gcI386],
-              @[gcGCCVersionToUseEnvVarName, "4.8", "11"],
-              @[gcNimTagSelector, "version", "#head"],
+              @[gcTargetOSEnvVarName, gcLinuxStr, gcWindowsStr],
               @[gcGCEnvVarName, "refc", "arc", "orc"]]
     lEnvsLow = lEnvs.low
     lEnvsHigh = lEnvs.high
@@ -699,12 +699,12 @@ task Util_AppveyourEnvMat, "generate the complete appveyor-ci env matrix":
   proc lGetEnvValue(aResult: string, aIndex: int) =
     if (aIndex <= lEnvsHigh):
       var lHeader = aResult
-      lHeader.addSep("\n    ")
+      lHeader.addSep("\n      ")
       lHeader &= lEnvs[aIndex][0] & ": "
       for lIndex in 1..lEnvs[aIndex].high:
         lGetEnvValue(lHeader & lEnvs[aIndex][lIndex], aIndex + 1)
     else:
-      lResult &= "  - " & aResult & "\n"
+      lResult &= "    - " & aResult & "\n"
 
   lGetEnvValue("", lEnvsLow)
   echo lResult

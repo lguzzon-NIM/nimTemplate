@@ -61,8 +61,8 @@ installRepositoryIfNotPresent() {
   done < <(find /etc/apt/ -name \*.list -print0)
   if [[ ${lResult} -eq 1 ]]; then
     installIfNotPresent software-properties-common
-    eval "sudo -E add-apt-repository -y ppa:${lPPAName}" \
-      && eval "${aptGetCmd} update"
+    retryCmd "$sudoCmd" add-apt-repository -y "ppa:${lPPAName}" \
+      && retryCmd "${aptGetCmd}" update
     lResult=$?
   fi
   return ${lResult}
@@ -75,7 +75,7 @@ installIfNotPresent() {
   local lResult=0
   if [[ $(dpkg-query -W -f='${Status}' "${lPackageName}" 2>/dev/null | grep -c "ok installed") -eq 0 ]]; then
     eval "${lPreCommandToRun}" \
-      && eval "${aptGetInstallCmd} ${lPackageName}" \
+      && retryCmd "${aptGetInstallCmd}" "${lPackageName}" \
       && eval "${lPostCommandToRun}"
     lResult=$?
   fi
@@ -86,27 +86,51 @@ patchUdev() {
   if [[ -f "/etc/init.d/udev" ]]; then
     # shellcheck disable=1004,2143
     [ ! "$(grep -A1 '### END INIT INFO' /etc/init.d/udev | grep 'dpkg --configure -a || exit 0')" ] \
-      && sudo sed -i 's/### END INIT INFO/### END INIT INFO\
+      && sudo -E sed -i 's/### END INIT INFO/### END INIT INFO\
 dpkg --configure -a || exit 0/' /etc/init.d/udev
   fi
   return 0
 }
 
-eval "${aptGetCmd} update"
+waitLock() {
+  while sudo -E fuser /var/{lib/{dpkg,apt/lists},cache/apt/archives}/lock >/dev/null 2>&1; do
+    sleep $((RANDOM % 5 + 2))
+  done
+  return 0
+}
+
+retryCmd() {
+  max_retry=10
+  counter=0
+  result=0
+  set +e
+  until waitLock && $@; do
+    sleep $((RANDOM % 5 + 1 + counter))
+    if [[ $counter -eq $max_retry ]] && echo "Failed!"; then
+      result=1
+      break
+    fi
+    ((counter++))
+  done
+  set -e
+  return $result
+}
+
+retryCmd "${aptGetCmd}" update
 patchUdev
 installRepositoryIfNotPresent "ubuntu-toolchain-r/test"
 installIfNotPresent "gcc-${USE_GCC}"
 installIfNotPresent "g++-${USE_GCC}"
 installIfNotPresent "git"
 
-sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${USE_GCC} 10
-sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${USE_GCC} 10
-sudo update-alternatives --set gcc "/usr/bin/gcc-${USE_GCC}"
-sudo update-alternatives --set g++ "/usr/bin/g++-${USE_GCC}"
+retryCmd "$sudoCmd" update-alternatives --install /usr/bin/gcc gcc "/usr/bin/gcc-${USE_GCC}" 10
+retryCmd "$sudoCmd" update-alternatives --install /usr/bin/g++ g++ "/usr/bin/g++-${USE_GCC}" 10
+retryCmd "$sudoCmd" update-alternatives --set gcc "/usr/bin/gcc-${USE_GCC}"
+retryCmd "$sudoCmd" update-alternatives --set g++ "/usr/bin/g++-${USE_GCC}"
 
 if [ -n "$CI" ]; then
-  ${aptGetCmd} clean
-  ${aptGetCmd} autoremove
+  retryCmd "${aptGetCmd}" clean
+  retryCmd "${aptGetCmd}" autoremove
 fi
 
 gcc --version
@@ -139,13 +163,25 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
   export WINEPREFIX
   WINEPREFIX="$(pwd)/.wineNIM-${NIM_TARGET_CPU}"
-  ${sudoCmd} dpkg --add-architecture i386
-  ${aptGetCmd} update
-
+  retryCmd "${sudoCmd}" dpkg --add-architecture i386
+  retryCmd "${aptGetCmd}" update
   installIfNotPresent mingw-w64
-  installIfNotPresent wine
+  installIfNotPresent wine-development
+  installIfNotPresent wine32
+  installIfNotPresent wine64
+  # installIfNotPresent "wget"
+  # installIfNotPresent "software-properties-common"
+  # installIfNotPresent "gpg-agent"
+  # installIfNotPresent "dirmngr"
+  # wget -qO- https://dl.winehq.org/wine-builds/Release.key | sudo apt-key add -
+  # ${aptGetCmd} update
+  # apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv F987672F
+  # sudo apt-add-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ bionic main'
+  # ${aptGetCmd} update
+  # sudo apt-get install --install-recommends winehq-stable
   if [[ ${NIM_TARGET_CPU} == "i386" ]]; then
     echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
+    # installIfNotPresent wine32
     export WINEARCH=win32
     {
       echo i386.windows.gcc.path = \"/usr/bin\"
@@ -153,8 +189,11 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
       echo i386.windows.gcc.linkerexe = \"i686-w64-mingw32-gcc\"
       echo gcc.options.linker = \"\"
     } >nim.cfg
+    which wine || true
+    which wine32 || true
   else
     echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
+    # installIfNotPresent wine64
     export WINEARCH=win64
     if [[ ${NIM_TARGET_CPU} == "amd64" ]]; then
       {
@@ -163,8 +202,11 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
         echo amd64.windows.gcc.linkerexe = \"x86_64-w64-mingw32-gcc\"
         echo gcc.options.linker = \"\"
       } >nim.cfg
+      which wine || true
+      which wine64 || true
     fi
   fi
+  ls -lah
   wine hostname
 else
   if [[ ${NIM_TARGET_OS} == "linux" ]]; then
