@@ -92,6 +92,7 @@ dpkg --configure -a || exit 0/' /etc/init.d/udev
   return 0
 }
 
+eval "${aptGetCmd} update"
 patchUdev
 installRepositoryIfNotPresent "ubuntu-toolchain-r/test"
 installIfNotPresent "gcc-${USE_GCC}"
