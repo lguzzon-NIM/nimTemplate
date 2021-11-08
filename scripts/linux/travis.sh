@@ -189,8 +189,6 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
       echo i386.windows.gcc.linkerexe = \"i686-w64-mingw32-gcc\"
       echo gcc.options.linker = \"\"
     } >nim.cfg
-    which wine || true
-    which wine32 || true
   else
     echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
     # installIfNotPresent wine64
@@ -202,11 +200,8 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
         echo amd64.windows.gcc.linkerexe = \"x86_64-w64-mingw32-gcc\"
         echo gcc.options.linker = \"\"
       } >nim.cfg
-      which wine || true
-      which wine64 || true
     fi
   fi
-  ls -lah
   wine hostname
 else
   if [[ ${NIM_TARGET_OS} == "linux" ]]; then

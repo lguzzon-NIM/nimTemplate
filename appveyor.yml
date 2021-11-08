@@ -3,485 +3,125 @@ build_script:
   - sh: ./scripts/linux/travis.sh
 environment:
   matrix:
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
+    - USE_GCC: 11
       NIM_TARGET_OS: linux
-      USE_GCC: 6
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.6.0
       NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 6
-    - NIM_GC: orc
       NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
+      NIM_GC: refc
+    - USE_GCC: 11
       NIM_TARGET_OS: linux
-      USE_GCC: 6
-    - NIM_GC: refc
+      NIM_TARGET_CPU: amd64
       NIM_TAG_SELECTOR: 1.6.0
+      NIM_GC: orc
+    - USE_GCC: 11
+      NIM_TARGET_OS: linux
       NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 6
-    - NIM_GC: arc
+      NIM_TAG_SELECTOR: 1.4.8
+      NIM_GC: refc
+    - USE_GCC: 11
+      NIM_TARGET_OS: linux
+      NIM_TARGET_CPU: amd64
+      NIM_TAG_SELECTOR: 1.4.8
+      NIM_GC: orc
+    - USE_GCC: 11
+      NIM_TARGET_OS: linux
+      NIM_TARGET_CPU: amd64
+      NIM_TAG_SELECTOR: devel
+      NIM_GC: refc
+    - USE_GCC: 11
+      NIM_TARGET_OS: linux
+      NIM_TARGET_CPU: amd64
+      NIM_TAG_SELECTOR: devel
+      NIM_GC: orc
+    - USE_GCC: 11
+      NIM_TARGET_OS: linux
+      NIM_TARGET_CPU: i386
       NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 6
-    - NIM_GC: orc
+      NIM_GC: refc
+    - USE_GCC: 11
+      NIM_TARGET_OS: linux
+      NIM_TARGET_CPU: i386
       NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
+      NIM_GC: orc
+    - USE_GCC: 11
+      NIM_TARGET_OS: linux
+      NIM_TARGET_CPU: i386
+      NIM_TAG_SELECTOR: 1.4.8
+      NIM_GC: refc
+    - USE_GCC: 11
+      NIM_TARGET_OS: linux
+      NIM_TARGET_CPU: i386
+      NIM_TAG_SELECTOR: 1.4.8
+      NIM_GC: orc
+    - USE_GCC: 11
+      NIM_TARGET_OS: linux
+      NIM_TARGET_CPU: i386
+      NIM_TAG_SELECTOR: devel
+      NIM_GC: refc
+    - USE_GCC: 11
+      NIM_TARGET_OS: linux
+      NIM_TARGET_CPU: i386
+      NIM_TAG_SELECTOR: devel
+      NIM_GC: orc
+    - USE_GCC: 11
       NIM_TARGET_OS: windows
-      USE_GCC: 6
-    - NIM_GC: refc
+      NIM_TARGET_CPU: amd64
       NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 6
-    - NIM_GC: arc
+      NIM_GC: refc
+    - USE_GCC: 11
+      NIM_TARGET_OS: windows
+      NIM_TARGET_CPU: amd64
       NIM_TAG_SELECTOR: 1.6.0
+      NIM_GC: orc
+    - USE_GCC: 11
+      NIM_TARGET_OS: windows
+      NIM_TARGET_CPU: amd64
+      NIM_TAG_SELECTOR: 1.4.8
+      NIM_GC: refc
+    - USE_GCC: 11
+      NIM_TARGET_OS: windows
+      NIM_TARGET_CPU: amd64
+      NIM_TAG_SELECTOR: 1.4.8
+      NIM_GC: orc
+    - USE_GCC: 11
+      NIM_TARGET_OS: windows
+      NIM_TARGET_CPU: amd64
+      NIM_TAG_SELECTOR: devel
+      NIM_GC: refc
+    - USE_GCC: 11
+      NIM_TARGET_OS: windows
+      NIM_TARGET_CPU: amd64
+      NIM_TAG_SELECTOR: devel
+      NIM_GC: orc
+    - USE_GCC: 11
+      NIM_TARGET_OS: windows
       NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 6
-    - NIM_GC: orc
       NIM_TAG_SELECTOR: 1.6.0
+      NIM_GC: refc
+    - USE_GCC: 11
+      NIM_TARGET_OS: windows
       NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 6
-    - NIM_GC: refc
       NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: i386
+      NIM_GC: orc
+    - USE_GCC: 11
       NIM_TARGET_OS: windows
-      USE_GCC: 6
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.6.0
       NIM_TARGET_CPU: i386
+      NIM_TAG_SELECTOR: 1.4.8
+      NIM_GC: refc
+    - USE_GCC: 11
       NIM_TARGET_OS: windows
-      USE_GCC: 6
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.6.0
       NIM_TARGET_CPU: i386
+      NIM_TAG_SELECTOR: 1.4.8
+      NIM_GC: orc
+    - USE_GCC: 11
       NIM_TARGET_OS: windows
-      USE_GCC: 6
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 7
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 7
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 7
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 7
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 7
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 7
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.6.0
       NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 7
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 7
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 7
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: i386
+      NIM_TAG_SELECTOR: devel
+      NIM_GC: refc
+    - USE_GCC: 11
       NIM_TARGET_OS: windows
-      USE_GCC: 7
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.6.0
       NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 7
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 7
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 9
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 9
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 9
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 9
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 9
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 9
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 9
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 9
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 9
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 9
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 9
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 9
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 11
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 11
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 11
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 11
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 11
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 11
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 11
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 11
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 11
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 11
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 11
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.6.0
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 11
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 6
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 6
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 6
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 6
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 6
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 6
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 6
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 6
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 6
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 6
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 6
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 6
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 7
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 7
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 7
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 7
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 7
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 7
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 7
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 7
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 7
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 7
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 7
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 7
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 9
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 9
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 9
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 9
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 9
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 9
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 9
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 9
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 9
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 9
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 9
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 9
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 11
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 11
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: linux
-      USE_GCC: 11
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 11
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 11
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: amd64
-      NIM_TARGET_OS: windows
-      USE_GCC: 11
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 11
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 11
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: linux
-      USE_GCC: 11
-    - NIM_GC: refc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 11
-    - NIM_GC: arc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 11
-    - NIM_GC: orc
-      NIM_TAG_SELECTOR: 1.4.8
-      NIM_TARGET_CPU: i386
-      NIM_TARGET_OS: windows
-      USE_GCC: 11
+      NIM_TAG_SELECTOR: devel
+      NIM_GC: orc
 image: Ubuntu1804
 version: 1.0.{build}

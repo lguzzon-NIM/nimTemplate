@@ -686,11 +686,13 @@ task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
 
 task Util_AppveyourEnvMat, "generate the complete appveyor-ci env matrix":
   const
-    lEnvs = @[@[gcNimTagSelector, "1.6.0", "1.4.8"],
-              @[gcGCCVersionToUseEnvVarName, "6", "7", "9", "11"],
-              @[gcTargetCpuEnvVarName, gcAmd64, gcI386],
+    lEnvs = @[
+              @[gcGCCVersionToUseEnvVarName, "11"],
               @[gcTargetOSEnvVarName, gcLinuxStr, gcWindowsStr],
-              @[gcGCEnvVarName, "refc", "arc", "orc"]]
+              @[gcTargetCpuEnvVarName, gcAmd64, gcI386],
+              @[gcNimTagSelector, "1.6.0", "1.4.8", "devel"],
+              @[gcGCEnvVarName, "refc", "orc"]
+      ]
     lEnvsLow = lEnvs.low
     lEnvsHigh = lEnvs.high
   var
