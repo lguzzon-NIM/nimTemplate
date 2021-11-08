@@ -684,6 +684,32 @@ task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
   echo lResult
 
 
+task Util_AppveyourEnvMat, "generate the complete appveyor-ci env matrix":
+  const
+    lEnvs = @[@[gcTargetOSEnvVarName, gcLinuxStr, gcWindowsStr],
+              @[gcTargetCpuEnvVarName, gcAmd64, gcI386],
+              @[gcGCCVersionToUseEnvVarName, "4.8", "11"],
+              @[gcNimTagSelector, "version", "#head"],
+              @[gcGCEnvVarName, "refc", "arc", "orc"]]
+    lEnvsLow = lEnvs.low
+    lEnvsHigh = lEnvs.high
+  var
+    lResult = ""
+
+  proc lGetEnvValue(aResult: string, aIndex: int) =
+    if (aIndex <= lEnvsHigh):
+      var lHeader = aResult
+      lHeader.addSep("\n    ")
+      lHeader &= lEnvs[aIndex][0] & ": "
+      for lIndex in 1..lEnvs[aIndex].high:
+        lGetEnvValue(lHeader & lEnvs[aIndex][lIndex], aIndex + 1)
+    else:
+      lResult &= "  - " & aResult & "\n"
+
+  lGetEnvValue("", lEnvsLow)
+  echo lResult
+
+
 task FormatSourceFiles, "format source files using nimpretty":
   if (gorgeEx("nimpretty --version").exitCode != 0):
     echo "Error nimpretty not present in path!!!"
