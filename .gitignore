@@ -7,6 +7,7 @@
 !/\.gitpod.Dockerfile
 !/\.gitpod.yml
 !/\.travis\.yml
+!/appveyor\.yml
 !/config\.nims
 !/LICENSE
 !/scripts/
