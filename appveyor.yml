@@ -1,6 +1,6 @@
 # https://www.appveyor.com/docs/appveyor-yml/
 version: 1.0.{build}
-build_cloud: ubuntu
+build_cloud: ubuntu Docker
 image: Ubuntu1804
 environment:
   matrix:
