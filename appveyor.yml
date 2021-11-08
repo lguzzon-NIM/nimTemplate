@@ -1,4 +1,4 @@
-build_cloud: ubuntu
+build_cloud: ubuntu Docker
 build_script:
   - sh: ./scripts/linux/travis.sh
 environment:
@@ -123,5 +123,5 @@ environment:
       NIM_TARGET_CPU: i386
       NIM_TAG_SELECTOR: devel
       NIM_GC: orc
-image: Ubuntu1804
+image: Linux
 version: 1.0.{build}
