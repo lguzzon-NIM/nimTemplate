@@ -155,14 +155,13 @@ PATH="$(pwd)/upx-${lUPXVersion}-amd64_linux${PATH:+:$PATH}" || true
 #Install Nim
 # shellcheck disable=SC2046
 # shellcheck disable=SC1090
-source $(dirname "$0")/installTool.sh
-upx_i
+$(dirname "$0")/installTool.sh -upx_i
 if [ "$NIM_TAG_SELECTOR" = "devel" ]; then
-  nim_i
+  $(dirname "$0")/installTool.sh -nim_i
 else
   source $(dirname "$0")/travisNim.sh
 fi
-zig_i
+$(dirname "$0")/installTool.sh -zig_i
 
 if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
