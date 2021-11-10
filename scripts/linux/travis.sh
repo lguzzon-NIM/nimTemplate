@@ -155,6 +155,7 @@ gcc --version
 #Install Nim
 # shellcheck disable=SC2046
 # shellcheck disable=SC1090
+installIfNotPresent jq
 $(dirname "$0")/installTool.sh -upx_i
 $(dirname "$0")/installTool.sh -urlNimDevel
 $(dirname "$0")/installTool.sh -urlNimVersion
