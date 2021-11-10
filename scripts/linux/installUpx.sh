@@ -12,7 +12,7 @@ readonly lUPXVersion=$(git ls-remote --tags "https://github.com/upx/upx.git" \
   | tail -1 \
   | sed "s/v//g")
 echo "${lUPXVersion}"
-readonly lLinuxArchitecture=$(uname -m)
+lLinuxArchitecture=$(uname -m)
 echo "${lLinuxArchitecture}"
 lArchitecture=${lLinuxArchitecture}
 case ${lLinuxArchitecture} in

@@ -7,7 +7,6 @@ echo "APPS_PATH [${APPS_PATH}]"
 mkdir -p "${APPS_PATH}"
 
 lLinuxArchitecture=$(uname -m)
-readonly lLinuxArchitecture
 
 echo "Linux Architecture: ${lLinuxArchitecture}"
 lArchitecture=${lLinuxArchitecture}
