@@ -171,11 +171,12 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   export WINEPREFIX
   WINEPREFIX="$(pwd)/.wineNIM-${NIM_TARGET_CPU}"
 
-  installIfNotPresent wine32-development
-  installIfNotPresent wine64-development
+  retryCmd "${aptGetCmd}" update
   installIfNotPresent wine32
   installIfNotPresent wine64
   which wine
+  # installIfNotPresent wine32-development
+  # installIfNotPresent wine64-development
 
   installIfNotPresent mingw-w64
   # installIfNotPresent "wget"
