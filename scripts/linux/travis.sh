@@ -117,13 +117,6 @@ retryCmd() {
 }
 
 retryCmd "${aptGetCmd}" update
-retryCmd "${sudoCmd}" dpkg --add-architecture i386
-retryCmd "${aptGetCmd}" update
-installIfNotPresent wine32
-installIfNotPresent wine64
-installIfNotPresent wine32-development
-installIfNotPresent wine64-development
-which wine
 
 patchUdev
 installRepositoryIfNotPresent "ubuntu-toolchain-r/test"
@@ -145,68 +138,29 @@ gcc --version
 
 #Install
 
-# #Install UPX
-# readonly lUPXVersion=$(
-#   git ls-remote --tags "https://github.com/upx/upx.git" \
-#     | awk '{print $2}' \
-#     | grep -v '{}' \
-#     | awk -F"/" '{print $3}' \
-#     | tail -1 \
-#     | sed "s/v//g"
-# )
-# curl -o upx.txz -sSL "https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz"
-# tar -xvf upx.txz
-# export PATH
-# # shellcheck disable=SC2123
-# PATH="$(pwd)/upx-${lUPXVersion}-amd64_linux${PATH:+:$PATH}" || true
-
-#Install Nim
-# shellcheck disable=SC2046
-# shellcheck disable=SC1090
 installIfNotPresent jq
-$(dirname "$0")/installTool.sh -upx_i
-$(dirname "$0")/installTool.sh -urlNimDevel
-$(dirname "$0")/installTool.sh -urlNimVersion
+source $(dirname "$0")/installUpx.sh
 if [ "$NIM_TAG_SELECTOR" = "devel" ]; then
-  $(dirname "$0")/installTool.sh -nim_i
+  source $(dirname "$0")/installNim.sh
 else
   source $(dirname "$0")/travisNim.sh
 fi
-$(dirname "$0")/installTool.sh -zig_i
+source $(dirname "$0")/installZig.sh
 
 if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
-  retryCmd "${aptGetCmd}" update
+
   retryCmd "${sudoCmd}" dpkg --add-architecture i386
   retryCmd "${aptGetCmd}" update
-  installIfNotPresent wine32
-  installIfNotPresent wine64
-  installIfNotPresent wine32-development
-  installIfNotPresent wine64-development
-  which wine
   installIfNotPresent mingw-w64
+  installIfNotPresent wine32
+  installIfNotPresent wine32-development
+  installIfNotPresent wine64
+  installIfNotPresent wine64-development
 
   export WINEPREFIX
   WINEPREFIX="$(pwd)/.wineNIM-${NIM_TARGET_CPU}"
 
-  # installIfNotPresent "wget"
-  # installIfNotPresent "software-properties-common"
-  # installIfNotPresent "gpg-agent"
-  # installIfNotPresent "dirmngr"
-  # wget -qO- https://dl.winehq.org/wine-builds/Release.key | sudo apt-key add -
-  # ${aptGetCmd} update
-  # apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv F987672F
-  # sudo apt-add-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ bionic main'
-  # ${aptGetCmd} update
-  # sudo apt-get install --install-recommends winehq-stable
-  # WINE_BRANCH="stable"
-  # installIfNotPresent wget
-  # wget -nv -O- https://dl.winehq.org/wine-builds/winehq.key | sudo -E APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add -
-  # sudo -E apt-add-repository "deb https://dl.winehq.org/wine-builds/ubuntu/ $(grep VERSION_CODENAME= /etc/os-release | cut -d= -f2) main"
-  # retryCmd "${sudoCmd}" dpkg --add-architecture i386
-  # retryCmd "${aptGetCmd}" update
-  # DEBIAN_FRONTEND="noninteractive" sudo -E apt-get install -y --install-recommends winehq-${WINE_BRANCH}
-  # which wine
   if [[ ${NIM_TARGET_CPU} == "i386" ]]; then
     echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
     export WINEARCH=win32
