@@ -118,6 +118,7 @@ retryCmd() {
 
 retryCmd "${aptGetCmd}" update
 retryCmd "${sudoCmd}" dpkg --add-architecture i386
+retryCmd "${aptGetCmd}" update
 installIfNotPresent wine32
 installIfNotPresent wine64
 installIfNotPresent wine32-development
@@ -177,6 +178,7 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
   retryCmd "${aptGetCmd}" update
   retryCmd "${sudoCmd}" dpkg --add-architecture i386
+  retryCmd "${aptGetCmd}" update
   installIfNotPresent wine32
   installIfNotPresent wine64
   installIfNotPresent wine32-development
