@@ -61,8 +61,8 @@ installRepositoryIfNotPresent() {
   done < <(find /etc/apt/ -name \*.list -print0)
   if [[ ${lResult} -eq 1 ]]; then
     installIfNotPresent software-properties-common
-    retryCmd "$sudoCmd" add-apt-repository -y "ppa:${lPPAName}" &&
-      retryCmd "${aptGetCmd}" update
+    retryCmd "$sudoCmd" add-apt-repository -y "ppa:${lPPAName}" \
+      && retryCmd "${aptGetCmd}" update
     lResult=$?
   fi
   return ${lResult}
@@ -74,9 +74,9 @@ installIfNotPresent() {
   local -r lPostCommandToRun="${3:-true}"
   local lResult=0
   if [[ $(dpkg-query -W -f='${Status}' "${lPackageName}" 2>/dev/null | grep -c "ok installed") -eq 0 ]]; then
-    eval "${lPreCommandToRun}" &&
-      retryCmd "${aptGetInstallCmd}" "${lPackageName}" &&
-      eval "${lPostCommandToRun}"
+    eval "${lPreCommandToRun}" \
+      && retryCmd "${aptGetInstallCmd}" "${lPackageName}" \
+      && eval "${lPostCommandToRun}"
     lResult=$?
   fi
   return ${lResult}
@@ -85,8 +85,8 @@ installIfNotPresent() {
 patchUdev() {
   if [[ -f "/etc/init.d/udev" ]]; then
     # shellcheck disable=1004,2143
-    [ ! "$(grep -A1 '### END INIT INFO' /etc/init.d/udev | grep 'dpkg --configure -a || exit 0')" ] &&
-      sudo -E sed -i 's/### END INIT INFO/### END INIT INFO\
+    [ ! "$(grep -A1 '### END INIT INFO' /etc/init.d/udev | grep 'dpkg --configure -a || exit 0')" ] \
+      && sudo -E sed -i 's/### END INIT INFO/### END INIT INFO\
 dpkg --configure -a || exit 0/' /etc/init.d/udev
   fi
   return 0
@@ -139,12 +139,12 @@ gcc --version
 
 #Install UPX
 readonly lUPXVersion=$(
-  git ls-remote --tags "https://github.com/upx/upx.git" |
-    awk '{print $2}' |
-    grep -v '{}' |
-    awk -F"/" '{print $3}' |
-    tail -1 |
-    sed "s/v//g"
+  git ls-remote --tags "https://github.com/upx/upx.git" \
+    | awk '{print $2}' \
+    | grep -v '{}' \
+    | awk -F"/" '{print $3}' \
+    | tail -1 \
+    | sed "s/v//g"
 )
 curl -o upx.txz -sSL "https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz"
 tar -xvf upx.txz
@@ -166,6 +166,11 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   retryCmd "${sudoCmd}" dpkg --add-architecture i386
   retryCmd "${aptGetCmd}" update
   installIfNotPresent mingw-w64
+  installIfNotPresent wine32-development
+  installIfNotPresent wine32
+  installIfNotPresent wine64-development
+  installIfNotPresent wine64
+  installIfNotPresent wine
   # installIfNotPresent "wget"
   # installIfNotPresent "software-properties-common"
   # installIfNotPresent "gpg-agent"
@@ -178,8 +183,6 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   # sudo apt-get install --install-recommends winehq-stable
   if [[ ${NIM_TARGET_CPU} == "i386" ]]; then
     echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
-    installIfNotPresent wine32-development
-    installIfNotPresent wine32
     export WINEARCH=win32
     {
       echo i386.windows.gcc.path = \"/usr/bin\"
@@ -189,8 +192,6 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
     } >nim.cfg
   else
     echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
-    installIfNotPresent wine64-development
-    installIfNotPresent wine64
     export WINEARCH=win64
     if [[ ${NIM_TARGET_CPU} == "amd64" ]]; then
       {
