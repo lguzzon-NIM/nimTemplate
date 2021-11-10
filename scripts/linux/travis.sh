@@ -35,7 +35,7 @@ if [ -z ${NIM_VERBOSITY+x} ]; then
 fi
 
 if [ -z ${NIM_TAG_SELECTOR+x} ]; then
-  export NIM_TAG_SELECTOR=version
+  export NIM_TAG_SELECTOR=devel
 fi
 
 if [ -z ${DISPLAY+x} ]; then
@@ -155,9 +155,14 @@ PATH="$(pwd)/upx-${lUPXVersion}-amd64_linux${PATH:+:$PATH}" || true
 #Install Nim
 # shellcheck disable=SC2046
 # shellcheck disable=SC1090
-source $(dirname "$0")/travisNim.sh
-
-nim --version
+source $(dirname "$0")/installTool.sh
+upx_i
+if [ "$NIM_TAG_SELECTOR" = "devel" ]; then
+  nim_i
+else
+  source $(dirname "$0")/travisNim.sh
+fi
+zig_i
 
 if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
