@@ -137,25 +137,27 @@ gcc --version
 
 #Install
 
-#Install UPX
-readonly lUPXVersion=$(
-  git ls-remote --tags "https://github.com/upx/upx.git" \
-    | awk '{print $2}' \
-    | grep -v '{}' \
-    | awk -F"/" '{print $3}' \
-    | tail -1 \
-    | sed "s/v//g"
-)
-curl -o upx.txz -sSL "https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz"
-tar -xvf upx.txz
-export PATH
-# shellcheck disable=SC2123
-PATH="$(pwd)/upx-${lUPXVersion}-amd64_linux${PATH:+:$PATH}" || true
+# #Install UPX
+# readonly lUPXVersion=$(
+#   git ls-remote --tags "https://github.com/upx/upx.git" \
+#     | awk '{print $2}' \
+#     | grep -v '{}' \
+#     | awk -F"/" '{print $3}' \
+#     | tail -1 \
+#     | sed "s/v//g"
+# )
+# curl -o upx.txz -sSL "https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz"
+# tar -xvf upx.txz
+# export PATH
+# # shellcheck disable=SC2123
+# PATH="$(pwd)/upx-${lUPXVersion}-amd64_linux${PATH:+:$PATH}" || true
 
 #Install Nim
 # shellcheck disable=SC2046
 # shellcheck disable=SC1090
 $(dirname "$0")/installTool.sh -upx_i
+$(dirname "$0")/installTool.sh -urlNimDevel
+$(dirname "$0")/installTool.sh -urlNimVersion
 if [ "$NIM_TAG_SELECTOR" = "devel" ]; then
   $(dirname "$0")/installTool.sh -nim_i
 else
@@ -174,7 +176,6 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   installIfNotPresent wine32
   installIfNotPresent wine64-development
   installIfNotPresent wine64
-  installIfNotPresent wine
   # installIfNotPresent "wget"
   # installIfNotPresent "software-properties-common"
   # installIfNotPresent "gpg-agent"
