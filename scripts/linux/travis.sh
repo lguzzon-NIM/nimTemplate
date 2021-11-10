@@ -117,11 +117,12 @@ retryCmd() {
 }
 
 retryCmd "${aptGetCmd}" update
-
+retryCmd "${sudoCmd}" dpkg --add-architecture i386
 installIfNotPresent wine32
 installIfNotPresent wine64
+installIfNotPresent wine32-development
+installIfNotPresent wine64-development
 which wine
-installIfNotPresent mingw-w64
 
 patchUdev
 installRepositoryIfNotPresent "ubuntu-toolchain-r/test"
@@ -175,12 +176,13 @@ $(dirname "$0")/installTool.sh -zig_i
 if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
   retryCmd "${aptGetCmd}" update
+  retryCmd "${sudoCmd}" dpkg --add-architecture i386
   installIfNotPresent wine32
   installIfNotPresent wine64
+  installIfNotPresent wine32-development
+  installIfNotPresent wine64-development
   which wine
   installIfNotPresent mingw-w64
-  # installIfNotPresent wine32-development
-  # installIfNotPresent wine64-development
 
   export WINEPREFIX
   WINEPREFIX="$(pwd)/.wineNIM-${NIM_TARGET_CPU}"
