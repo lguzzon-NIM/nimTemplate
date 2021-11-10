@@ -173,10 +173,6 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   retryCmd "${sudoCmd}" dpkg --add-architecture i386
   retryCmd "${aptGetCmd}" update
   installIfNotPresent mingw-w64
-  installIfNotPresent wine32-development
-  installIfNotPresent wine32
-  installIfNotPresent wine64-development
-  installIfNotPresent wine64
   # installIfNotPresent "wget"
   # installIfNotPresent "software-properties-common"
   # installIfNotPresent "gpg-agent"
@@ -189,6 +185,7 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   # sudo apt-get install --install-recommends winehq-stable
   if [[ ${NIM_TARGET_CPU} == "i386" ]]; then
     echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
+    installIfNotPresent wine32-development
     export WINEARCH=win32
     {
       echo i386.windows.gcc.path = \"/usr/bin\"
@@ -198,6 +195,7 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
     } >nim.cfg
   else
     echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
+    installIfNotPresent wine64-development
     export WINEARCH=win64
     if [[ ${NIM_TARGET_CPU} == "amd64" ]]; then
       {
