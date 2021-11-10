@@ -24,7 +24,7 @@ function getScriptDir() {
 
 readonly sudoCmd="sudo -E"
 readonly aptGetCmd="${sudoCmd} DEBIAN_FRONTEND=noninteractive apt-get -y -qq"
-readonly aptGetInstallCmd="${aptGetCmd} --no-install-suggests --no-install-recommends install"
+readonly aptGetInstallCmd="${aptGetCmd} install"
 
 #Before Install
 if [ -z ${USE_GCC+x} ]; then
@@ -171,13 +171,10 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   export WINEPREFIX
   WINEPREFIX="$(pwd)/.wineNIM-${NIM_TARGET_CPU}"
 
-  WINE_BRANCH="stable"
-  installIfNotPresent wget
-  wget -nv -O- https://dl.winehq.org/wine-builds/winehq.key | sudo -E APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add -
-  sudo -E apt-add-repository "deb https://dl.winehq.org/wine-builds/ubuntu/ $(grep VERSION_CODENAME= /etc/os-release | cut -d= -f2) main"
-  retryCmd "${sudoCmd}" dpkg --add-architecture i386
-  retryCmd "${aptGetCmd}" update
-  DEBIAN_FRONTEND="noninteractive" sudo -E apt-get install -y --install-recommends winehq-${WINE_BRANCH}
+  installIfNotPresent wine32-development
+  installIfNotPresent wine64-development
+  installIfNotPresent wine32
+  installIfNotPresent wine64
   which wine
 
   installIfNotPresent mingw-w64
@@ -191,9 +188,16 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   # sudo apt-add-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ bionic main'
   # ${aptGetCmd} update
   # sudo apt-get install --install-recommends winehq-stable
+  # WINE_BRANCH="stable"
+  # installIfNotPresent wget
+  # wget -nv -O- https://dl.winehq.org/wine-builds/winehq.key | sudo -E APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add -
+  # sudo -E apt-add-repository "deb https://dl.winehq.org/wine-builds/ubuntu/ $(grep VERSION_CODENAME= /etc/os-release | cut -d= -f2) main"
+  # retryCmd "${sudoCmd}" dpkg --add-architecture i386
+  # retryCmd "${aptGetCmd}" update
+  # DEBIAN_FRONTEND="noninteractive" sudo -E apt-get install -y --install-recommends winehq-${WINE_BRANCH}
+  # which wine
   if [[ ${NIM_TARGET_CPU} == "i386" ]]; then
     echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
-    installIfNotPresent wine32-development
     export WINEARCH=win32
     {
       echo i386.windows.gcc.path = \"/usr/bin\"
@@ -203,7 +207,6 @@ if [[ ${NIM_TARGET_OS} == "windows" ]]; then
     } >nim.cfg
   else
     echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
-    installIfNotPresent wine64-development
     export WINEARCH=win64
     if [[ ${NIM_TARGET_CPU} == "amd64" ]]; then
       {
