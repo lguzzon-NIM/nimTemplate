@@ -117,6 +117,12 @@ retryCmd() {
 }
 
 retryCmd "${aptGetCmd}" update
+
+installIfNotPresent wine32
+installIfNotPresent wine64
+which wine
+installIfNotPresent mingw-w64
+
 patchUdev
 installRepositoryIfNotPresent "ubuntu-toolchain-r/test"
 installIfNotPresent "gcc-${USE_GCC}"
@@ -168,17 +174,17 @@ $(dirname "$0")/installTool.sh -zig_i
 
 if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
-  export WINEPREFIX
-  WINEPREFIX="$(pwd)/.wineNIM-${NIM_TARGET_CPU}"
-
   retryCmd "${aptGetCmd}" update
   installIfNotPresent wine32
   installIfNotPresent wine64
   which wine
+  installIfNotPresent mingw-w64
   # installIfNotPresent wine32-development
   # installIfNotPresent wine64-development
 
-  installIfNotPresent mingw-w64
+  export WINEPREFIX
+  WINEPREFIX="$(pwd)/.wineNIM-${NIM_TARGET_CPU}"
+
   # installIfNotPresent "wget"
   # installIfNotPresent "software-properties-common"
   # installIfNotPresent "gpg-agent"
