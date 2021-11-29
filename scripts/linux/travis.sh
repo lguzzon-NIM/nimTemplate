@@ -24,7 +24,7 @@ function getScriptDir() {
 
 readonly sudoCmd="sudo -E"
 readonly aptGetCmd="${sudoCmd} DEBIAN_FRONTEND=noninteractive apt-get -y -qq"
-readonly aptGetInstallCmd="${aptGetCmd} --no-install-suggests --no-install-recommends install"
+readonly aptGetInstallCmd="${aptGetCmd} install"
 
 #Before Install
 if [ -z ${USE_GCC+x} ]; then
@@ -35,7 +35,7 @@ if [ -z ${NIM_VERBOSITY+x} ]; then
 fi
 
 if [ -z ${NIM_TAG_SELECTOR+x} ]; then
-  export NIM_TAG_SELECTOR=version
+  export NIM_TAG_SELECTOR=devel
 fi
 
 if [ -z ${DISPLAY+x} ]; then
@@ -61,8 +61,8 @@ installRepositoryIfNotPresent() {
   done < <(find /etc/apt/ -name \*.list -print0)
   if [[ ${lResult} -eq 1 ]]; then
     installIfNotPresent software-properties-common
-    eval "sudo -E add-apt-repository -y ppa:${lPPAName}" \
-      && eval "${aptGetCmd} update"
+    retryCmd "$sudoCmd" add-apt-repository -y "ppa:${lPPAName}" \
+      && retryCmd "${aptGetCmd}" update
     lResult=$?
   fi
   return ${lResult}
@@ -75,7 +75,7 @@ installIfNotPresent() {
   local lResult=0
   if [[ $(dpkg-query -W -f='${Status}' "${lPackageName}" 2>/dev/null | grep -c "ok installed") -eq 0 ]]; then
     eval "${lPreCommandToRun}" \
-      && eval "${aptGetInstallCmd} ${lPackageName}" \
+      && retryCmd "${aptGetInstallCmd}" "${lPackageName}" \
       && eval "${lPostCommandToRun}"
     lResult=$?
   fi
@@ -86,64 +86,81 @@ patchUdev() {
   if [[ -f "/etc/init.d/udev" ]]; then
     # shellcheck disable=1004,2143
     [ ! "$(grep -A1 '### END INIT INFO' /etc/init.d/udev | grep 'dpkg --configure -a || exit 0')" ] \
-      && sudo sed -i 's/### END INIT INFO/### END INIT INFO\
+      && sudo -E sed -i 's/### END INIT INFO/### END INIT INFO\
 dpkg --configure -a || exit 0/' /etc/init.d/udev
   fi
   return 0
 }
 
-eval "${aptGetCmd} update"
+waitLock() {
+  while sudo -E fuser /var/{lib/{dpkg,apt/lists},cache/apt/archives}/lock >/dev/null 2>&1; do
+    sleep $((RANDOM % 5 + 2))
+  done
+  return 0
+}
+
+retryCmd() {
+  max_retry=10
+  counter=0
+  result=0
+  set +e
+  until waitLock && $@; do
+    sleep $((RANDOM % 5 + 1 + counter))
+    if [[ $counter -eq $max_retry ]] && echo "Failed!"; then
+      result=1
+      break
+    fi
+    ((counter++))
+  done
+  set -e
+  return $result
+}
+
+retryCmd "${aptGetCmd}" update
+
 patchUdev
 installRepositoryIfNotPresent "ubuntu-toolchain-r/test"
 installIfNotPresent "gcc-${USE_GCC}"
 installIfNotPresent "g++-${USE_GCC}"
 installIfNotPresent "git"
 
-sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${USE_GCC} 10
-sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${USE_GCC} 10
-sudo update-alternatives --set gcc "/usr/bin/gcc-${USE_GCC}"
-sudo update-alternatives --set g++ "/usr/bin/g++-${USE_GCC}"
+retryCmd "$sudoCmd" update-alternatives --install /usr/bin/gcc gcc "/usr/bin/gcc-${USE_GCC}" 10
+retryCmd "$sudoCmd" update-alternatives --install /usr/bin/g++ g++ "/usr/bin/g++-${USE_GCC}" 10
+retryCmd "$sudoCmd" update-alternatives --set gcc "/usr/bin/gcc-${USE_GCC}"
+retryCmd "$sudoCmd" update-alternatives --set g++ "/usr/bin/g++-${USE_GCC}"
 
 if [ -n "$CI" ]; then
-  ${aptGetCmd} clean
-  ${aptGetCmd} autoremove
+  retryCmd "${aptGetCmd}" clean
+  retryCmd "${aptGetCmd}" autoremove
 fi
 
 gcc --version
 
 #Install
 
-#Install UPX
-readonly lUPXVersion=$(
-  git ls-remote --tags "https://github.com/upx/upx.git" \
-    | awk '{print $2}' \
-    | grep -v '{}' \
-    | awk -F"/" '{print $3}' \
-    | tail -1 \
-    | sed "s/v//g"
-)
-curl -o upx.txz -sSL "https://github.com/upx/upx/releases/download/v${lUPXVersion}/upx-${lUPXVersion}-amd64_linux.tar.xz"
-tar -xvf upx.txz
-export PATH
-# shellcheck disable=SC2123
-PATH="$(pwd)/upx-${lUPXVersion}-amd64_linux${PATH:+:$PATH}" || true
-
-#Install Nim
-# shellcheck disable=SC2046
-# shellcheck disable=SC1090
-source $(dirname "$0")/travisNim.sh
-
-nim --version
+installIfNotPresent jq
+source $(dirname "$0")/installUpx.sh
+if [ "$NIM_TAG_SELECTOR" = "devel" ]; then
+  source $(dirname "$0")/installNim.sh
+else
+  source $(dirname "$0")/travisNim.sh
+fi
+source $(dirname "$0")/installZig.sh
 
 if [[ ${NIM_TARGET_OS} == "windows" ]]; then
   echo "------------------------------------------------------------ targetOS: ${NIM_TARGET_OS}"
+
+  retryCmd "${sudoCmd}" dpkg --add-architecture i386
+  retryCmd "${aptGetCmd}" update
+  installIfNotPresent mingw-w64
+  installIfNotPresent wine32
+  installIfNotPresent wine32-development
+  installIfNotPresent wine64
+  installIfNotPresent wine64-development
+
   export WINEPREFIX
   WINEPREFIX="$(pwd)/.wineNIM-${NIM_TARGET_CPU}"
-  ${sudoCmd} dpkg --add-architecture i386
-  ${aptGetCmd} update
 
-  installIfNotPresent mingw-w64
-  installIfNotPresent wine
   if [[ ${NIM_TARGET_CPU} == "i386" ]]; then
     echo "------------------------------------------------------------ targetCPU: ${NIM_TARGET_CPU}"
     export WINEARCH=win32

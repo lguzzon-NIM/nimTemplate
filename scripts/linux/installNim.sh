@@ -3,11 +3,11 @@
 export APPS_DIR_NAME=APPs
 export APPS_PATH="${HOME}/${APPS_DIR_NAME}"
 [ -d "/data" ] && APPS_PATH="/data/${APPS_DIR_NAME}"
+[ -d "/code" ] && APPS_PATH="/code/${APPS_DIR_NAME}"
 echo "APPS_PATH [${APPS_PATH}]"
 mkdir -p "${APPS_PATH}"
 
 lLinuxArchitecture=$(uname -m)
-readonly lLinuxArchitecture
 
 echo "Linux Architecture: ${lLinuxArchitecture}"
 lArchitecture=${lLinuxArchitecture}

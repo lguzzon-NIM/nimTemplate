@@ -293,10 +293,13 @@ zig cc $2"$$@"
       else:
         switch "passL", "-static -no-pie"
   of gcZIG:
-    switch "passL", "-static -no-pie"
-    if (gcWindowsStr == getTargetOS()):
-      switch "clang.options.linker", ""
-      switch "clang.cpp.options.linker", ""
+    if (gcMacOsXStr == getTargetOS()):
+      switch "passL", "-static"
+    else:
+      switch "passL", "-static -no-pie"
+      if (gcWindowsStr == getTargetOS()):
+        switch "clang.options.linker", ""
+        switch "clang.cpp.options.linker", ""
   else:
     discard
 
@@ -676,6 +679,34 @@ task Util_TravisEnvMat, "generate the complete travis-ci env matrix":
         lGetEnvValue(lHeader & lEnvs[aIndex][lIndex], aIndex + 1)
     else:
       lResult &= "- '" & aResult & "'\n"
+
+  lGetEnvValue("", lEnvsLow)
+  echo lResult
+
+
+task Util_AppveyourEnvMat, "generate the complete appveyor-ci env matrix":
+  const
+    lEnvs = @[
+              @[gcGCCVersionToUseEnvVarName, "11"],
+              @[gcTargetOSEnvVarName, gcLinuxStr, gcWindowsStr],
+              @[gcTargetCpuEnvVarName, gcAmd64, gcI386],
+              @[gcNimTagSelector, "1.6.0", "1.4.8", "devel"],
+              @[gcGCEnvVarName, "refc", "orc"]
+      ]
+    lEnvsLow = lEnvs.low
+    lEnvsHigh = lEnvs.high
+  var
+    lResult = ""
+
+  proc lGetEnvValue(aResult: string, aIndex: int) =
+    if (aIndex <= lEnvsHigh):
+      var lHeader = aResult
+      lHeader.addSep("\n      ")
+      lHeader &= lEnvs[aIndex][0] & ": "
+      for lIndex in 1..lEnvs[aIndex].high:
+        lGetEnvValue(lHeader & lEnvs[aIndex][lIndex], aIndex + 1)
+    else:
+      lResult &= "    - " & aResult & "\n"
 
   lGetEnvValue("", lEnvsLow)
   echo lResult
