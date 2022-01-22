@@ -60,10 +60,14 @@ architectureOs() {
 # shellcheck disable=SC2120
 sAPPS_PATH() {
   local -r APPS_DIR_NAME=${1:-APPs}
-  APPS_PATH="${HOME}/${APPS_DIR_NAME}"
-  [ -d "/data" ] && APPS_PATH="/data/${APPS_DIR_NAME}"
-  [ -d "/code" ] && APPS_PATH="/code/${APPS_DIR_NAME}"
-  echo "APPS_PATH [${APPS_PATH}]"
+  if [ -d "${APPS_PATH}" ]; then
+    echo "APPS_PATH by ENV [${APPS_PATH}]"
+  else
+    APPS_PATH="${HOME}/${APPS_DIR_NAME}"
+    [ -d "/data" ] && APPS_PATH="/data/${APPS_DIR_NAME}"
+    [ -d "/code" ] && APPS_PATH="/code/${APPS_DIR_NAME}"
+    echo "APPS_PATH [${APPS_PATH}]"
+  fi
   mkdir -p "${APPS_PATH}"
 }
 
