@@ -32,14 +32,15 @@ const
   gcCLang = "clang"
   gcCCDefault = gcGCC
 
-  # --gc:refc|markAndSweep|boehm|go|none|regions
-  # switch "gc", "refc" - zig KO
-  # switch "gc", "markAndSweep" - zig KO
-  # switch "gc", "boehm" - zig ok
-  # switch "gc", "regions" - zig ok
-  # switch "gc", "arc" ???
-  # switch "gc", "orc" ???
-  gcGCDefault = "refc"
+  # --mm:orc|arc|refc|markAndSweep|boehm|go|none|regions
+  # switch "mm", "refc" - zig KO in debug
+  # switch "mm", "markAndSweep" - zig ok
+  # switch "mm", "boehm" - zig KO no libGc
+  # switch "mm", "go" - zig KO no libGo
+  # switch "mm", "regions" - zig ok
+  # switch "mm", "arc" - zig ok
+  # switch "mm", "orc" - zig ok
+  gcGCDefault = "orc"
 
 var gReleaseOption = false
 
@@ -308,7 +309,7 @@ proc switchCommon () =
   let lNimVerbosity = getNimVerbosity()
   switch "verbosity", lNimVerbosity
   setCC()
-  switch "gc", getGC()
+  switch "mm", getGC()
   if getReleaseOption():
     switch "define", "release"
     switch "define", "quick"
