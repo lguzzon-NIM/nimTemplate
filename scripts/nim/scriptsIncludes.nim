@@ -234,6 +234,8 @@ proc findTestFiles (): seq[string] =
 proc getZigTarget(): string =
   var lTargetCPU = getTargetCPU()
   case lTargetCPU:
+  of gcI386:
+    lTargetCPU = "x86"
   of gcAmd64:
     lTargetCPU = "x86_64"
   of gcArm64:
