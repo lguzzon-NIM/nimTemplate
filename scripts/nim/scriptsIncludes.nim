@@ -311,7 +311,8 @@ proc switchCommon () =
   let lNimVerbosity = getNimVerbosity()
   switch "verbosity", lNimVerbosity
   setCC()
-  switch "mm", getGC()
+  if ("js" != getTargetCPU()):
+    switch "mm", getGC()
   if getReleaseOption():
     switch "define", "release"
     switch "define", "quick"
@@ -409,6 +410,7 @@ proc setCompile(aFilePath: string) =
   case lTargetCPU
   of "js":
     lCommand = "js"
+    switch "b", "js"
   else:
     discard
   setCommand lCommand, aFilePath
