@@ -1,9 +1,8 @@
 
-import unittest
-
 when defined(js):
   discard
 else:
+  import unittest
   import os
   import osproc
   import strutils
