@@ -77,7 +77,9 @@ proc getAbi(): string =
   if existsEnv(gcABIEnvVarName):
     getEnv(gcABIEnvVarName)
   else:
-    if (getTargetOS() in [gcMacOsXStr, gcWindowsStr]):
+    if (gcZIG == getCC()) and (getTargetOS() == gcMacOsXStr):
+      "none"
+    elif (getTargetOS() in [gcMacOsXStr, gcWindowsStr]):
       "gnu"
     else:
       "musl"
@@ -268,7 +270,7 @@ proc setCC() =
         lZigCC.writeFile(lZigCCContent%[lBuildCacheDir, "-target " & getZigTarget() & " "])
     else:
       let lZigCC = lBuildCacheDir / "zigCC.sh"
-      const lZigCCContent = """
+      var lZigCCContentTemplate = """
 #!/usr/bin/env bash
 set -e
 set -o pipefail
@@ -276,10 +278,26 @@ set -o pipefail
 # echo zig cc $2"$$@"
 zig cc $2"$$@"
 """
-      if (getReleaseOption()):
-        lZigCC.writeFile(lZigCCContent%[lBuildCacheDir, "-s -target " & getZigTarget() & " "])
+      let lZigTarget = getZigTarget()
+      if (gcMacOsXStr == getTargetOS()):
+        let lSysRoot = gorgeEx("xcrun --show-sdk-path").output.strip()
+        if (getReleaseOption()):
+          lZigCC.writeFile("""#!/usr/bin/env bash
+set -e
+set -o pipefail
+zig cc -target $1 --sysroot $2 -s "$$@"
+"""%[lZigTarget, lSysRoot])
+        else:
+          lZigCC.writeFile("""#!/usr/bin/env bash
+set -e
+set -o pipefail
+zig cc -target $1 --sysroot $2 "$$@"
+"""%[lZigTarget, lSysRoot])
       else:
-        lZigCC.writeFile(lZigCCContent%[lBuildCacheDir, "-target " & getZigTarget() & " "])
+        if (getReleaseOption()):
+          lZigCC.writeFile(lZigCCContentTemplate%[lBuildCacheDir, "-s -target " & lZigTarget & " "])
+        else:
+          lZigCC.writeFile(lZigCCContentTemplate%[lBuildCacheDir, "-target " & lZigTarget & " "])
       exec("chmod +x \"$1\""%[lZigCC])
     switch "cc", "clang"
     switch "clang.exe", lZigCC
@@ -297,7 +315,7 @@ zig cc $2"$$@"
         switch "passL", "-static -no-pie"
   of gcZIG:
     if (gcMacOsXStr == getTargetOS()):
-      switch "passL", "-static"
+      discard # macOS zig doesn't support static linking
     else:
       switch "passL", "-static -no-pie"
       if (gcWindowsStr == getTargetOS()):
@@ -801,7 +819,11 @@ task FormatYamlFiles, "format yaml files using yq":
 task CheckProject, "project checking ...":
   dependsOn Settings NInstallDeps
   build_create()
-  switchCommon()
+  switch "verbosity", getNimVerbosity()
+  setCC()
+  switch "out", getBuildBinaryFilePath()
+  switch "nimcache", getBuildCacheDir()
+  switch "app", "console"
   setCommand "check", getSourceMainFile()
 
 
