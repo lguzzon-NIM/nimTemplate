@@ -657,11 +657,85 @@ task CRun, "clean and run the project ex: nim --putenv:runParams=\"<Parameters>\
   dependsOn Clean Run
 
 
-task UpdateScript, "update this script to latest release in " & "n" & "imTemplate [uses svn on github]":
+task UpdateScript, "update this script to latest release in nimTemplate [uses git raw API]":
   let lFromScript = "scripts/nim/scriptsIncludes.nim"
-  lFromScript.cpFile(lFromScript & "_OLD")
-  exec("svn export --force \"$1/tags/$2/$3\" \"$3\""%[gcRepoURL,
-      getLatestTagOfGitRepo(gcRepoURL), lFromScript])
+  let lBackupScript = lFromScript & "_OLD"
+  let lTempFile = lFromScript & ".tmp"
+
+  echo "=== UpdateScript starting ==="
+  echo "Repository: " & gcRepoURL
+
+  # Get latest tag
+  echo "[1/5] Fetching latest tag from remote..."
+  let lTag = getLatestTagOfGitRepo(gcRepoURL)
+  if lTag == "":
+    echo "ERROR: Could not determine latest tag"
+    return
+  echo "Latest tag: " & lTag
+
+  # Backup current script
+  echo "[2/5] Creating backup of current script..."
+  if not fileExists(lFromScript):
+    echo "ERROR: Source file not found: " & lFromScript
+    return
+  lFromScript.cpFile(lBackupScript)
+  if fileExists(lBackupScript):
+    echo "Backup created: " & lBackupScript
+  else:
+    echo "WARNING: Backup creation may have failed"
+
+  # Build raw content URL
+  echo "[3/5] Preparing download URL..."
+  let lRepoPath = gcRepoURL.replace("https://github.com/", "").replace(".git", "")
+  let lRawURL = "https://raw.githubusercontent.com/$1/$2/$3" % [lRepoPath, lTag, lFromScript]
+  echo "Download URL: " & lRawURL
+
+  # Download the file
+  echo "[4/5] Downloading latest script..."
+  let lDownloadCmd = """curl -fsSL -o "$1" "$2""" % [lTempFile, lRawURL]
+
+  try:
+    exec(lDownloadCmd)
+
+    # Verify download
+    if not fileExists(lTempFile):
+      raise newException(OSError, "Downloaded file not found: " & lTempFile)
+
+    # Move temp file to final location
+    echo "[5/5] Installing new script..."
+    lTempFile.mvFile(lFromScript)
+
+    echo ""
+    echo "=== Update completed successfully ==="
+    echo "Updated: " & lFromScript
+    echo "Version: " & lTag
+    echo "Source:  " & lRawURL
+
+    # Clean up backup on success
+    if fileExists(lBackupScript):
+      lBackupScript.rmFile()
+      echo "Cleaned up: " & lBackupScript
+
+  except:
+    echo ""
+    echo "=== Update failed ==="
+    echo "Error during update process"
+    echo ""
+    echo "Restoring from backup..."
+
+    # Clean up temp file if it exists
+    if fileExists(lTempFile):
+      lTempFile.rmFile()
+      echo "Cleaned up temp file: " & lTempFile
+
+    # Restore from backup
+    if fileExists(lBackupScript):
+      lBackupScript.cpFile(lFromScript)
+      echo "Restored from: " & lBackupScript
+      lBackupScript.rmFile()
+    else:
+      echo "CRITICAL: No backup found! Original file may be corrupted or lost."
+      echo "You may need to manually restore the file from git."
 
 
 task NInstall, "install project using nimble":
